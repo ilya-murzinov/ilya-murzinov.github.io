@@ -2,9 +2,10 @@
 
 title: Ilya Murzinov's blog
 locale: en_US
-description: Java, Android developer.
+description: Java, Android developer and enthusiast.
 logo: site-logo.png
 search: true
+#url: http://localhost:4000
 url: http://ilya-murzinov.github.io
 
 # Jekyll configuration
