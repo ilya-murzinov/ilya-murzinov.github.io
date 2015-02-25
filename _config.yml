@@ -1,9 +1,9 @@
 # Site wide configuration
 
-title: Ilya Murzinov's blog
+title: Ilya Murzinov
 locale: en_US
 description: Java, Android developer and enthusiast.
-logo: site-logo.png
+#logo: site-logo.png
 search: true
 #url: http://localhost:4000
 url: http://ilya-murzinov.github.io
