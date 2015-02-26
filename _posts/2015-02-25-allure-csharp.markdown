@@ -31,7 +31,7 @@ Ok, so we are good to go.
 
 ####Getting work done
 
-End-to-end configuration is pretty tricky, but it can be simplified in the future by using plugins for TeamCity or Jenkins. The result will be **bat**-script you can use to run tests and generate report as a build step in you build server. I will describe this process for NUnit because I was personally using it. But it should be pretty much the same for MS Test.
+End-to-end configuration is pretty tricky, but it can be simplified in the future by using plugins for TeamCity or Jenkins. The result will be *.bat-script you can use to run tests and generate report as a build step in you build server. I will describe this process for NUnit because I was personally using it. But it should be pretty much the same for MS Test.
 
 So what exactly do we need?
 
@@ -56,7 +56,7 @@ Next, we need to install nunit-adapter and configure it. Here are the steps to d
 
  1. Unpack allure-nunit binaries to %NUNIT_HOME%\bin\addins
  1. Addin will NOT be visible in Tools -> Addins.. because it's built against .NET 4.0
- 1. In %NUNIT_HOME%\bin\addins\config.xml specify absolute path to any folder (this folder will be created automatically) where **xml** files will be generated (for example &lt;results-path>C:\test-results\AllureResults&lt;/results-path>)
+ 1. In %NUNIT_HOME%\bin\addins\config.xml specify absolute path to any folder (this folder will be created automatically) where XML files will be generated (for example &lt;results-path>C:\test-results\AllureResults&lt;/results-path>)
  1. You can also specify in configuration whether you want to take screenshots after failed tests and whether you want to have test output to be written to attachments
 
 After that we need to add new environmental variable OUTPUT_FOLDER pointing to the folder we specified in adapter's config.xml:
@@ -65,7 +65,7 @@ After that we need to add new environmental variable OUTPUT_FOLDER pointing to t
 set OUTPUT_DIR=C:\test-results\AllureResults
 {% endhighlight %}
 
-After we set all variables comes the easy part - running tests and generating report. I'll just provide the resulting **bat**-script, it's self-explanatory:
+After we set all variables comes the easy part - running tests and generating report. I'll just provide the resulting *.bat-script, it's self-explanatory:
 
 {% highlight bat %}
 set ASSEMBLIES_DIR=C:\project\bin\debug
@@ -79,10 +79,13 @@ set NGINX_HOME=C:\nginx-1.7.0
 %JAVA_HOME%\bin\java -jar %ALLURE_CLI_HOME%\allure-cli.jar generate -v 1.4.0 %OUTPUT_DIR% -o %NGINX_HOME%\html\
 {% endhighlight %}
 
-You can run as much **\*.dll**'s as you want or create an **\*.nuproj** project cointaining all assemblies.
+You can run as much \*.dll's as you want or create an \*.nuproj project cointaining all assemblies.
 
 Now we need to start Nginx and thats all! If you've done it right, you will see the report at [http://localhost:8080](http://localhost:8080) (depends on Nginx configuration).
 
 Note that this is only the basic configuration and it can of course be extended/modified.
+
+####Problems
+There is one [big issue](https://github.com/allure-framework/allure-csharp-commons/issues/3) with allure-csharp-commons, specifically, handling some custom attributes like Attachment, Step. We even have a [pull-request](https://github.com/allure-framework/allure-csharp-commons/pull/15) for this issue, but it's quite complicated and I personally have no time to dig into it.
 
 If you have any questions, you are welcome to ask it in comments.
