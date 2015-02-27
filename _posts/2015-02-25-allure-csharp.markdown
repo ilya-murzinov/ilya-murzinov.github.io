@@ -17,7 +17,7 @@ About a year ago I worked as a QA automation engineer and, of course, had to dea
  - It's **expensive** (meaning not free :) )
  - Reports are hard to read and analyse
  - There is no (easy) way to attach anything to test report
- - I personally liked NUnit better then MS Test.
+ - I personally liked NUnit more than MS Test.
 
 And then I discovered [Allure Framework](http://allure.qatools.ru) - open-source tool which was developed by Yandex test team and it provides really great reports. You can browse their site, or watch [sample report](http://teamcity.qatools.ru/repository/download/allure_core_master_release/lastSuccessful/index.html?guest=1#/home) to convince youself that it's a very good. Allure consists of 2 important parts - adapter and generator. Adapter produces XML files in specific format for generator to generate the final report.
 
