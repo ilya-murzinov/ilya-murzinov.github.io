@@ -94,7 +94,7 @@ $ cp ./spring-boot-jboss-initial/target/spring-boot-jboss-initial-1.0-SNAPSHOT.w
 $ ~/jboss-7.1.1-Final/bin/standalone.sh
 {% endhighlight %}
 
-But here comes the big BOOM:
+But here comes the big problem:
 
 {% highlight bash %}
 $ curl http://localhost:8080/boot
@@ -112,6 +112,20 @@ $ curl http://localhost:8080/boot
 </pre>
 </body></html>
 {% endhighlight %}
+
+####Analysis
+
+Line 29 is where *HelloComponent*'s method *go()* is called. It's quite obvious that *HelloComponent* did not get autowired into the *HelloFilter* and thus *component == null*. This kind of situation commonly occurres when some some Spring's component is not by Spring.
+
+And that's is exactly what happens here. By adding a breakepoint to the *HelloComponent*'s constructor, we find out that *HelloComponent* gets instantiated two times: first time by Spring and the second time by JBoss.
+
+When JBoss registers filters it takes *HelloComponent*'s instance that it created instead of the one created by Spring. 
+
+####Solution
+
+**Disclaimer:** I'm aware that this is kind of ugly workaround, but it's the only way we managed to get our application work.
+
+
 
 {% highlight java %}
 {% endhighlight %}
