@@ -2,18 +2,18 @@
 layout: post
 title: "Running a Spring Boot application on JBoss 7.1.1"
 modified:
-categories: article
+categories: articles
 excerpt:
 image:
   feature:
 tags: [java, jboss, spring]
 comments: true
-date: 2015-03-01T20:38:24+03:00
+date: 2015-03-03T20:38:24+03:00
 ---
 
 ####Background
 
-One of the projects which I was developing used Spring Boot for configuration, assembling, testing and property managing. Everything was pretty great, we were completely satisfied with Spring Boot and our application ran without any problems on Tomcat 7. But when this project was close to the end, it turned out that we will have JBoss instead of Tomcat in production. It should not have caused any troubles for us, but we ended up spending lots of time on this migration. And here is one of the reasons why this happend.
+One of the projects which I was developing used the [Spring Boot](http://projects.spring.io/spring-boot/) for configuration, assembling, testing and property managing. Everything was pretty great, we were completely satisfied with Spring Boot and our application ran without any problems on Tomcat 7. But when this project was coming to the end, it turned out that we will have JBoss instead of Tomcat in production. It should not have caused any troubles for us, but we ended up spending lots of time on this migration. And here is one of the reasons why this happened.
 
 Of course, I can't share the source code of our project, so I created a little example that reveals the underlying problem.
 
@@ -70,7 +70,7 @@ public class Application extends SpringBootServletInitializer {
 }
 {% endhighlight %}
 
-You can see the whole project [here](https://github.com/ilya-murzinov/spring-boot-jboss/tree/master/spring-boot-jboss-initial).
+You can see the entire project [here](https://github.com/ilya-murzinov/spring-boot-jboss/tree/master/spring-boot-jboss-initial).
 
 Ok, let's build it and run on Tomcat 7:
 
@@ -113,13 +113,13 @@ org.springframework.boot.context.web.ErrorPageFilter.doFilter(ErrorPageFilter.ja
 </body></html>
 {% endhighlight %}
 
-What happend?
+What happened?
 
 ####Analysis
 
-Line 29 (== line 9 in the above snippet) of *HelloFilter* is where *HelloComponent*'s method *go()* is called. It's quite obvious that *HelloComponent* did not get autowired into the *HelloFilter* and thus *component == null*. This kind of situation commonly occurres when some Spring's component gets instantiated not by Spring.
+Line 29 (== line 9 in the above snippet) of *HelloFilter* is where *HelloComponent*'s method *go()* is called. It's quite obvious that *HelloComponent* did not get autowired into the *HelloFilter* and thus *component == null*. This kind of situation commonly occures when some Spring's component gets instantiated not by Spring.
 
-And that's exactly what happens here. By adding a breakepoint to the *HelloComponent*'s constructor, we find out that *HelloComponent* gets instantiated two times: first time by Spring and the second time by JBoss. And when JBoss registers filters it takes *HelloComponent*'s instance that it created instead of the one created by Spring.
+And that's exactly what happens here. By adding a breakpoint to the *HelloComponent*'s constructor, we find out that *HelloComponent* gets instantiated two times: first time by Spring and the second time by JBoss. And when JBoss registers filters it takes *HelloComponent*'s instance that it created instead of the one created by Spring.
 
 JBoss uses *Apache Catalina* inside, but a modified version, and it causes all the problems. Let's take a look at *org.apache.catalina.core.StandardContext* from *org.jboss.web:jbossweb:7.0.13.Final*:
 
@@ -162,11 +162,11 @@ protected boolean filterStart() {
     }
 {% endhighlight %}
 
-This class has two fields - *filterConfigs* and *filterDefs*, by the time it enters this method, the *filterConfigs* contains filters created by Spring, and the *filterDefs* contains only names and class names of those filters. The first loop, starting at line TODO gets correct filters from *filterConfigs* and registers them. But then the second loop, starting at line TODO instantiates filters again and then registers them with the same filterNames. Thus correct filters get overwritten.
+This class has two fields - *filterConfigs* and *filterDefs*, by the time it enters this method, the *filterConfigs* contains filters created by Spring, and the *filterDefs* contains only names and class names of those filters. The first loop, starting at line 8 gets correct filters from *filterConfigs* and registers them. But then the second loop, starting at line 19 instantiates filters again and then registers them with the same filterNames. Thus, correct filters get overwritten.
 
 ####Solution
 
-The idea is to disable filter after Spring has created it (so JBoss wouldn't register it) and then create a proxy that delegate calls to the filter taken from Spring context. We will use *FilterRegistrationBean* and *BeanPostProcessor* to disable filter.
+The idea is to disable the filter after Spring has created it (so JBoss wouldn't register it) and then create a proxy that delegate calls to the filter taken from Spring context. I used *FilterRegistrationBean* and *BeanPostProcessor* to disable the filter.
 
 {% highlight xml %}
 <?xml version="1.0" encoding="UTF-8"?>
@@ -238,7 +238,9 @@ public class Application extends SpringBootServletInitializer {
     }
 {% endhighlight %}
 
-Now we have our filter instantiated and registered correclty, let's test it:
+If you need to use more filters you should use (if not using already) *org.springframework.web.filter.CompositeFilter*.
+
+Now we have our filter instantiated and registered correctly, let's test it:
 
 {% highlight bash %}
 $ curl http://localhost:8080/boot
@@ -252,7 +254,7 @@ $ curl http://localhost:8080/boot
 
 That's definitely better than NPE, but still not what we expected. Why did that happen?
 
-Turns out that JBoss treats servlets just like filters and thus Spring's *DispatcherServlet* does not get instantiated properly. So we need to add a proxy for this servlet to *JBossProxyInitializer* as well:
+Appears that JBoss treats servlets just like filters and thus Spring's *DispatcherServlet* does not get instantiated properly. So we need to add a proxy for this servlet to *JBossProxyInitializer* as well:
 
 {% highlight java linenos %}
 @SpringBootApplication
@@ -321,7 +323,6 @@ Greetings from Spring Boot!
 
 ####Conclusion
 
-Any questions are welcome in comments.
+Although, the strange JBoss's behaviour still remains a mystery to me, the workaround described above lets an application run normally on this application server. The only drawback of this solution (except it being an ugly hack :) ) is that it doesn't scale when it comes to servlets. This means that you *have* to create a proxy for every servlet in your application.
 
-{% highlight java linenos %}
-{% endhighlight %}
+Any questions are welcome in comments.
