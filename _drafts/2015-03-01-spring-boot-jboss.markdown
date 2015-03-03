@@ -121,9 +121,7 @@ Line 29 (== line 9 in the above snippet) of *HelloFilter* is where *HelloCompone
 
 And that's exactly what happens here. By adding a breakepoint to the *HelloComponent*'s constructor, we find out that *HelloComponent* gets instantiated two times: first time by Spring and the second time by JBoss. And when JBoss registers filters it takes *HelloComponent*'s instance that it created instead of the one created by Spring.
 
-JBoss uses *Apache Catalina* inside, but a modified version, and it causes all the problems. Let's take a look at *org.apache.catalina.core.StandardContext* in both Tomcat and JBoss.
-
-StandardContext inside org.jboss.web:jbossweb:7.0.13.Final
+JBoss uses *Apache Catalina* inside, but a modified version, and it causes all the problems. Let's take a look at *org.apache.catalina.core.StandardContext* from *org.jboss.web:jbossweb:7.0.13.Final*:
 
 {% highlight java linenos %}
 protected boolean filterStart() {
@@ -164,38 +162,7 @@ protected boolean filterStart() {
     }
 {% endhighlight %}
 
-StandardContext inside org.apache.tomcat.embed:tomcat-embed-core:7.0.57
-
-{% highlight java linenos %}
-public boolean filterStart() {
-        if (getLogger().isDebugEnabled())
-            getLogger().debug("Starting filters");
-        // Instantiate and record a FilterConfig for each defined filter
-        boolean ok = true;
-        synchronized (filterConfigs) {
-            filterConfigs.clear();
-            Iterator<String> names = filterDefs.keySet().iterator();
-            while (names.hasNext()) {
-                String name = names.next();
-                if (getLogger().isDebugEnabled())
-                    getLogger().debug(" Starting filter '" + name + "'");
-                ApplicationFilterConfig filterConfig = null;
-                try {
-                    filterConfig =
-                        new ApplicationFilterConfig(this, filterDefs.get(name));
-                    filterConfigs.put(name, filterConfig);
-                } catch (Throwable t) {
-                    t = ExceptionUtils.unwrapInvocationTargetException(t);
-                    ExceptionUtils.handleThrowable(t);
-                    getLogger().error
-                        (sm.getString("standardContext.filterStart", name), t);
-                    ok = false;
-                }
-            }
-        }
-        return (ok);
-    }
-{% endhighlight %}
+This class has two fields - *filterConfigs* and *filterDefs*, by the time it enters this method, the *filterConfigs* contains filters created by Spring, and the *filterDefs* contains only names and class names of those filters. The first loop, starting at line TODO gets correct filters from *filterConfigs* and registers them. But then the second loop, starting at line TODO instantiates filters again and then registers them with the same filterNames. Thus correct filters get overwritten.
 
 ####Solution
 
@@ -353,8 +320,6 @@ Greetings from Spring Boot!
 {% endhighlight %}
 
 ####Conclusion
-
-This is kinda hacky workaround
 
 Any questions are welcome in comments.
 
