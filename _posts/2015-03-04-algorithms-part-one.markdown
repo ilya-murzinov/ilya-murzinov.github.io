@@ -2,7 +2,7 @@
 layout: post
 title: "Algorithms Part One"
 modified:
-categories: blog 
+categories: blog
 excerpt:
 image:
   feature:
@@ -11,7 +11,7 @@ date: 2015-03-05T01:38:50+03:00
 comments: on
 ---
 
-I've just finished amazing course [Algorythms Part 1](https://www.coursera.org/course/algs4partI) by Robert Sedgewick from Princeton University on Coursera. This cource finally me quite full understanding of basic algorithms, data structures and analysis of algorithms.
+I've just finished amazing course [Algorithms Part 1](https://www.coursera.org/course/algs4partI) by Robert Sedgewick from Princeton University on Coursera. This course finally me quite full understanding of basic algorithms, data structures and analysis of algorithms.
 
 I can proudly say that I've reached highest score in every programming assignment. But I did not do so great in exercises.
 
@@ -41,6 +41,6 @@ Here are my final grades:
 |--------------------------------------------------------|-------------|
 | **Final Exam**                                         | 7.1/10      |
 
-Of course, I will not share any of my solutions in any form other than pesonal e-mail.
+Of course, I will not share any of my solutions in any form other than personal e-mail.
 
 I will definitely join [second part](https://www.coursera.org/course/algs4partII) of this course.
