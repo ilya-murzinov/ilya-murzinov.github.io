@@ -11,7 +11,9 @@ comments: true
 date: 2015-02-25T20:38:24+03:00
 ---
 
-####Background
+Background
+----------
+
 About a year ago I worked as a QA automation engineer and, of course, had to deal with lots of test reports. In our company we had both unit- and UI-tests and used MS Test + Team Foundation Server + Microsoft Test Manager 2012 to run our automated tests, collect and view all the reports. But this solution had too many disadvantages for me:
 
  - It's **expensive** (meaning not free :) )
@@ -29,7 +31,8 @@ But that was not a problem for me, I'm an open-source guy, so I quickly decided 
 
 Ok, so we are good to go.
 
-####Getting work done
+Getting work done
+-----------------
 
 End-to-end configuration is pretty tricky, but it can be simplified in the future by using plugins for TeamCity or Jenkins. The result will be *.bat-script you can use to run tests and generate report as a build step in you build server. I will describe this process for NUnit because I was personally using it. But it should be pretty much the same for MS Test.
 
@@ -44,13 +47,13 @@ So what exactly do we need?
 
 First of all, we need to install NUnit, allure-cli, JRE, Nginx and set environmental variables, for example (replace these values with yours):
 
-{% highlight bat %}
+``` bash
 set ASSEMBLIES_DIR=C:\project\bin\debug
 set NUNIT_HOME = C:\NUnit-2.6.3
 set ALLURE_CLI_HOME = C:\allure-cli
 set JAVA_HOME = C:\Program Files\Java\jre-1.7.0_75
 set NGINX_HOME=C:\nginx-1.7.0
-{% endhighlight %}
+```
 
 Next, we need to install nunit-adapter and configure it. Here are the steps to do it:
 
@@ -61,13 +64,13 @@ Next, we need to install nunit-adapter and configure it. Here are the steps to d
 
 After that we need to add new environmental variable OUTPUT_FOLDER pointing to the folder we specified in adapter's config.xml:
 
-{% highlight bat %}
+``` bash
 set OUTPUT_DIR=C:\test-results\AllureResults
-{% endhighlight %}
+```
 
 After we set all variables comes the easy part - running tests and generating report. I'll just provide the resulting *.bat-script, it's self-explanatory:
 
-{% highlight bat %}
+``` bash
 set ASSEMBLIES_DIR=C:\project\bin\debug
 set NUNIT_HOME=C:\NUnit-2.6.3
 set ALLURE_CLI_HOME=C:\allure-cli\allure-cli.jar
@@ -77,7 +80,7 @@ set NGINX_HOME=C:\nginx-1.7.0
 
 %NUNIT_HOME%\bin\nunit-console.exe %ASSEMBLIES_DIR%\YourAssembly.dll /framework=net-4.0
 %JAVA_HOME%\bin\java -jar %ALLURE_CLI_HOME%\allure-cli.jar generate -v 1.4.0 %OUTPUT_DIR% -o %NGINX_HOME%\html\
-{% endhighlight %}
+```
 
 You can run as much \*.dll's as you want or create an \*.nuproj project cointaining all assemblies.
 
@@ -85,7 +88,9 @@ Now we need to start Nginx and thats all! If you've done it right, you will see 
 
 Note that this is only the basic configuration and it can of course be extended/modified.
 
-####Problems
+Problems
+--------
+
 There is one [big issue](https://github.com/allure-framework/allure-csharp-commons/issues/3) with allure-csharp-commons, specifically, handling some custom attributes like Attachment, Step. We even have a [pull-request](https://github.com/allure-framework/allure-csharp-commons/pull/15) for this issue, but it's quite complicated and I personally have no time to dig into it.
 
 If you have any questions, you are welcome to ask it in comments.

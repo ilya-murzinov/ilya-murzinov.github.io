@@ -20,13 +20,13 @@ Quizzes of this course are not challenging at all, they do not cover even a half
 
 After all, the last programming assignment contains an egregious example of a very bad code:
 
-{% highlight javascript %}
+``` javascript
 var new_comment = $("<%= escape_javascript(render(:partial => @comment)) %>");
 new_comment.hide();
 $('#comments').prepend(new_comment);
 $('#comment_<%= @comment.id %>').fadeIn('slow');
 $('#new_comment')[0].reset();
-{% endhighlight %}
+```
 
 That's just how you should NOT write your code.
 
