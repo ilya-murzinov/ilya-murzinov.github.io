@@ -5,13 +5,16 @@ excerpt: ""
 modified: 2015-02-27T19:44:38.564948-04:00
 ---
 
-####Hi there!
+Hi there!
+---------
 
-My name is Ilya and I'm a professional Java developer and enthusiast Android developer.
+My name is Ilya and I'm a professional Java and Groovy developer and enthusiast Scala developer.
+
+Lately I'm digging into functional programming, mostly inspired by [Typelevel](http://typelevel.org/) projects.
 
 I graduated from Saint-Petersburg State University in 2013 with a Specialist Degree (5 years) in Applied Mathematics and Computer Science.
 
-Сurrently I'm working at T-System as Java developer and specialize in back-end Java development, service-oriented architecture, REST, SOAP services, etc.
+Сurrently I'm working at Trip-Top as Back-end Java/Groovy developer and specialize in service-oriented architecture, REST, SOAP services, etc.
 
 I also have an experience with the .NET platform as a QA automation engineer, specifically, developing test automation framework and couple of libraries.
 
