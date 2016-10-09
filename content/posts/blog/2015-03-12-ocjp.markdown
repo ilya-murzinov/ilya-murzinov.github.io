@@ -7,7 +7,11 @@ date: 2015-03-12T17:38:50+03:00
 comments: on
 ---
 
+<!-- TEASER START -->
+
 Earlier today I've passed Oracle Certified Java 6 Professional (OCJP, 1Z0-851) exam with the **100% score**.
+
+<!-- TEASER STOP -->
 
 ![screenshot](/images/ocjp.png)
 

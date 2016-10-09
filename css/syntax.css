@@ -1,6 +1,6 @@
 /* Loosely based on pygment's default colors */
 div.sourceCode {
-    border: 1px solid #000;
+    background: #efefef;
     margin-bottom: 1em;
     margin-top: 1em;
     padding-left: 1em;

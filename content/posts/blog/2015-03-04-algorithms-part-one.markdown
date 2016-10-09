@@ -7,9 +7,13 @@ date: 2015-03-05T01:38:50+03:00
 comments: on
 ---
 
+<!-- TEASER START -->
+
 I've just finished amazing course [Algorithms Part 1](https://www.coursera.org/course/algs4partI) by Robert Sedgewick from Princeton University on Coursera. This course finally me quite full understanding of basic algorithms, data structures and analysis of algorithms.
 
 I can proudly say that I've reached highest score in every programming assignment. But I did not do so great in exercises.
+
+<!-- TEASER STOP -->
 
 Here are my final grades:
 

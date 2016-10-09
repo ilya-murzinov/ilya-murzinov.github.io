@@ -7,8 +7,12 @@ tags: [ruby, rails, coursera]
 comments: on
 ---
 
+<!-- TEASER START -->
+
 I've just finished [Web Applications Architectures](https://www.coursera.org/course/webapplications) course by *Greg Heileman*, 
 *University of New Mexico*. It took only 2 evenings (~ 10 hours) to complete this course with the **100% grade**. Grades are, of course, not yet avaliable, but I've got 100% in every assignment and quiz, so it's not hard to do the math.
+
+<!-- TEASER STOP -->
 
 As an overview of this course, I can say that though it's designed for beginners without any development experience, lectures are quite confusing. Lots of low-level stuff get mixed with high-level stuff in a way that doesn't help to understang what's going on in the Rails application.
 

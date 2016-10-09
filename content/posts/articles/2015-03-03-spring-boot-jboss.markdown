@@ -10,7 +10,11 @@ date: 2015-03-03T20:38:24+03:00
 Background
 ----------
 
+<!-- TEASER START -->
+
 One of the projects which I was developing used the [Spring Boot](http://projects.spring.io/spring-boot/) for configuration, assembling, testing and property managing. Everything was pretty great, we were completely satisfied with Spring Boot and our application ran without any problems on Tomcat 7. But when this project was coming to the end, it turned out that we will have JBoss instead of Tomcat in production. It should not have caused any troubles for us, but we ended up spending lots of time on this migration. And here is one of the reasons why this happened.
+
+<!-- TEASER STOP -->
 
 Of course, I can't share the source code of our project, so I created a little example that reveals the underlying problem.
 

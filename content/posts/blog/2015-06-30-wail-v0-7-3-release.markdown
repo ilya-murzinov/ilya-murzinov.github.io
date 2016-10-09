@@ -6,9 +6,13 @@ comments: on
 date: 2015-06-30T21:55:38+00:00
 ---
 
-Almost exactly half a year have passed since the latest [WAIL](https://github.com/artem-zinnatullin/android-wail-app) release (0.7.2), and I finally found the time to prepare the next one.
+<!-- TEASER START -->
+
+Almost exactly half a year have passed since the latest [WAIL](https://github.com/artem-zinnatullin/android-wail-app) release (0.7.2), and I finally found the time to prepare the next one
 
 Even though this is a minor release, it contains a relatively major change - browser based (or "desktop", as LastFM API reference calls it) authentication. It allows WAIL to get session key for user without requiring him to type his username/password directly inside the app. This is obviously a great feature, because many people do not trust third-party applications. So this [pull request](https://github.com/artem-zinnatullin/android-wail-app/pull/150) is one of those, which I am proud of.
+
+<!-- TEASER STOP -->
 
 Of course this release as well contains lot of fixes of really annoying bugs (mostly in the scrobbling logic).
 

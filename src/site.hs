@@ -10,33 +10,39 @@ import           System.FilePath (splitExtension)
 main :: IO ()
 main = hakyll $ do
     match ("images/*" .||. "content/certificates/*") $ do
-      route $ stripContent `composeRoutes` idRoute
-      compile copyFileCompiler
+        route $ stripContent `composeRoutes` idRoute
+        compile copyFileCompiler
 
     match "css/*" $ do
         route   idRoute
         compile compressCssCompiler
 
-    match (fromList ["content/about.markdown", "content/contact.markdown"]) $ do
+    match ("content/*.markdown") $ do
         route $ stripContent `composeRoutes` customRoute indexRoute
         compile $ pandocCompiler
             >>= loadAndApplyTemplate "templates/default.html" defaultContext
             >>= relativizeUrls
 
     match allPosts $ do
-        route $ stripContent `composeRoutes` stripPosts `composeRoutes` customRoute (\i -> indexRoute $ removeDate i)
-        compile $ pandocCompiler
-            >>= loadAndApplyTemplate "templates/post.html"    postCtx
-            >>= loadAndApplyTemplate "templates/default.html" postCtx
-            >>= relativizeUrls
-
-    match "index.html" $ do
-        route idRoute
+        route $ stripContent `composeRoutes`
+                stripPosts `composeRoutes`
+                customRoute (\i -> indexRoute $ removeDate i)
         compile $ do
-            posts <- recentFirst =<< loadAll allPosts
+            c <- pandocCompiler
+            full <- loadAndApplyTemplate "templates/post.html" postCtx c
+            teaser <- loadAndApplyTemplate "templates/teaser.html" postCtx $
+                      extractTeaser c
+            saveSnapshot "teaser" teaser
+            loadAndApplyTemplate "templates/default.html" postCtx full
+                >>= relativizeUrls
+
+    match "content/index.html" $ do
+        route $ stripContent `composeRoutes` idRoute
+        compile $ do
+            posts <- recentFirst =<< loadAllSnapshots allPosts "teaser"
             let indexCtx =
                     listField "posts" postCtx (return posts) `mappend`
-                    constField "title" "Home"                `mappend`
+                    constField "title" "Home" `mappend`
                     defaultContext
 
             getResourceBody
@@ -75,9 +81,17 @@ indexRoute i = (name i) ++ "/index.html"
     where name path = fst $ splitExtension $ toFilePath path
 
 stripIndex :: String -> String
-stripIndex url = if "index.html" `isSuffixOf` url && elem (head url) ("/." :: String)
-    then take (length url - 10) url else url
+stripIndex url =
+    if "index.html" `isSuffixOf` url && elem (head url) ("/." :: String)
+    then take (length url - 10) url
+    else url
 
 deIndexedUrl :: String -> Context a
-deIndexedUrl key = field key
-    $ fmap (stripIndex . maybe mempty toUrl) . getRoute . itemIdentifier
+deIndexedUrl key = field key $
+    fmap (stripIndex . maybe mempty toUrl) . getRoute . itemIdentifier
+
+extractTeaser :: Item String -> Item String
+extractTeaser = fmap (unlines .
+                      takeWhile (/= "<!-- TEASER STOP -->") .
+                      dropWhile (/= "<!-- TEASER START -->") .
+                      lines)
