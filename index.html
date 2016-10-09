@@ -1,18 +1,145 @@
----
-layout: page
-title: Latest Posts
-excerpt: "The index page."
-search_omit: true
----
+<!DOCTYPE html>
+<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7"><![endif]-->
+<!--[if IE 7]><html class="no-js lt-ie9 lt-ie8"><![endif]-->
+<!--[if IE 8]><html class="no-js lt-ie9"><![endif]-->
+<!--[if gt IE 8]><!--><html class="no-js" lang="en"><!--<![endif]-->
 
-<ul class="post-list">
-{% for post in site.posts limit:10 %} 
-    <li>
-      <article>
-            <a href="{{ site.url }}{{ post.url }}">
-              {{ post.title }} <span class="entry-date"><time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: "%B %d, %Y" }}</time></span>
-            </a>
-      </article>
-    </li>
-{% endfor %}
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <title>Ilya Murzinov: Home</title>
+        <link rel="icon" type="image/png" href="./images/favicon.png" />
+        <link rel="icon" type="image/png" href="./images/favicon-32x32.png" sizes="32x32" />
+        <link rel="icon" type="image/png" href="./images/favicon-16x16.png" sizes="16x16" />
+        <link rel="stylesheet" type="text/css" href="./css/default.css" />
+        <link rel="stylesheet" type="text/css" href="./css/syntax.css" />
+        <link rel="stylesheet" type="text/css" href="./css/font-awesome.min.css" />
+    </head>
+    <body>
+        <div id="header">
+            <div id="logo">
+                <a href="./">Ilya Murzinov</a>
+            </div>
+            <div id="navigation">
+                <a href="https://github.com/ilya-murzinov"><i class="fa fa-github fa-1x"></i></a>
+                <a href="https://github.com/ilya-murzinov/ilya-murzinov.github.io/tree/hakyll"><i class="fa fa-code fa-1x"></i></a>
+                <a href="https://twitter.com/ilyamurzinov"><i class="fa fa-twitter fa-1x"></i>
+                <a href="https://www.facebook.com/Murzinov.Ilya"><i class="fa fa-facebook fa-1x"></i>
+                <a href="https://www.facebook.com/Murzinov.Ilya"><i class="fa fa-instagram fa-1x"></i>
+                <a href="./about/">About</a>
+            </div>
+        </div>
+
+        <div id="content">
+            
+    <div class="post">
+        <a href="./blog/wail-v0-7-3-release/" class="post-title">"WAIL v0.7.3 Release"</a> - <span class="post-date">June 30, 2015</span>
+        <!-- TEASER START -->
+<p>Almost exactly half a year have passed since the latest <a href="https://github.com/artem-zinnatullin/android-wail-app">WAIL</a> release (0.7.2), and I finally found the time to prepare the next one</p>
+<p>Even though this is a minor release, it contains a relatively major change - browser based (or “desktop”, as LastFM API reference calls it) authentication. It allows WAIL to get session key for user without requiring him to type his username/password directly inside the app. This is obviously a great feature, because many people do not trust third-party applications. So this <a href="https://github.com/artem-zinnatullin/android-wail-app/pull/150">pull request</a> is one of those, which I am proud of.</p>
+
+
+<div class="continue-link"><a href="./blog/wail-v0-7-3-release/">Read more &raquo;</a></div>
+
+    </div>
+
+    <div class="post">
+        <a href="./blog/its-scala-time/" class="post-title">"It's Scala Time!"</a> - <span class="post-date">May  1, 2015</span>
+        <!-- TEASER START -->
+<p>I’ve been very busy at work lately, because I was transfered to new project and there is a lot of stuff to learn. But now things settled down a bit so I’m back and ready to continue my open-source activities.</p>
+
+
+<div class="continue-link"><a href="./blog/its-scala-time/">Read more &raquo;</a></div>
+
+    </div>
+
+    <div class="post">
+        <a href="./blog/shortest-coursera-course-ever/" class="post-title">"Shortest Coursera Course Ever"</a> - <span class="post-date">March 18, 2015</span>
+        <!-- TEASER START -->
+<p>I’ve just finished <a href="https://www.coursera.org/course/webapplications">Web Applications Architectures</a> course by <em>Greg Heileman</em>, <em>University of New Mexico</em>. It took only 2 evenings (~ 10 hours) to complete this course with the <strong>100% grade</strong>. Grades are, of course, not yet avaliable, but I’ve got 100% in every assignment and quiz, so it’s not hard to do the math.</p>
+
+
+<div class="continue-link"><a href="./blog/shortest-coursera-course-ever/">Read more &raquo;</a></div>
+
+    </div>
+
+    <div class="post">
+        <a href="./blog/ocjp/" class="post-title">"I'm a Certified Java Professional!"</a> - <span class="post-date">March 12, 2015</span>
+        <!-- TEASER START -->
+<p>Earlier today I’ve passed Oracle Certified Java 6 Professional (OCJP, 1Z0-851) exam with the <strong>100% score</strong>.</p>
+
+
+<div class="continue-link"><a href="./blog/ocjp/">Read more &raquo;</a></div>
+
+    </div>
+
+    <div class="post">
+        <a href="./blog/algorithms-part-one/" class="post-title">"Algorithms Part One"</a> - <span class="post-date">March  4, 2015</span>
+        <!-- TEASER START -->
+<p>I’ve just finished amazing course <a href="https://www.coursera.org/course/algs4partI">Algorithms Part 1</a> by Robert Sedgewick from Princeton University on Coursera. This course finally me quite full understanding of basic algorithms, data structures and analysis of algorithms.</p>
+<p>I can proudly say that I’ve reached highest score in every programming assignment. But I did not do so great in exercises.</p>
+
+
+<div class="continue-link"><a href="./blog/algorithms-part-one/">Read more &raquo;</a></div>
+
+    </div>
+
+    <div class="post">
+        <a href="./articles/spring-boot-jboss/" class="post-title">"Running a Spring Boot application on JBoss 7.1.1"</a> - <span class="post-date">March  3, 2015</span>
+        <!-- TEASER START -->
+<p>One of the projects which I was developing used the <a href="http://projects.spring.io/spring-boot/">Spring Boot</a> for configuration, assembling, testing and property managing. Everything was pretty great, we were completely satisfied with Spring Boot and our application ran without any problems on Tomcat 7. But when this project was coming to the end, it turned out that we will have JBoss instead of Tomcat in production. It should not have caused any troubles for us, but we ended up spending lots of time on this migration. And here is one of the reasons why this happened.</p>
+
+
+<div class="continue-link"><a href="./articles/spring-boot-jboss/">Read more &raquo;</a></div>
+
+    </div>
+
+    <div class="post">
+        <a href="./articles/allure-csharp/" class="post-title">"Introducing Allure in C# project"</a> - <span class="post-date">February 25, 2015</span>
+        <!-- TEASER START -->
+<p>About a year ago I worked as a QA automation engineer and, of course, had to deal with lots of test reports. In our company we had both unit- and UI-tests and used MS Test + Team Foundation Server + Microsoft Test Manager 2012 to run our automated tests, collect and view all the reports. But this solution had too many disadvantages for me:</p>
+<ul>
+<li>It’s <strong>expensive</strong> (meaning not free :) )</li>
+<li>Reports are hard to read and analyse</li>
+<li>There is no (easy) way to attach anything to test report</li>
+<li>I personally liked NUnit more than MS Test.</li>
 </ul>
+
+
+<div class="continue-link"><a href="./articles/allure-csharp/">Read more &raquo;</a></div>
+
+    </div>
+
+    <div class="post">
+        <a href="./blog/hello-world/" class="post-title">"Hello World!"</a> - <span class="post-date">February 23, 2015</span>
+        <!-- TEASER START -->
+<p>I’ve just started this blog today and this post is mostly a test of Disqus comments engine.</p>
+
+
+<div class="continue-link"><a href="./blog/hello-world/">Read more &raquo;</a></div>
+
+    </div>
+
+
+
+
+        </div>
+        <div id="footer">
+            Powered by
+            <a href="http://jaspervdj.be/hakyll">Hakyll</a>
+        </div>
+    </body>
+
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script>window.jQuery || document.write('<script src="/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+    <!-- Asynchronous Google Analytics snippet -->
+    <script>
+     (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+         (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                              m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+     })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+     ga('create', 'UA-36422511-1', 'https://ilya-murzinov.github.io');
+     ga('send', 'pageview');
+    </script>
+
+</html>
