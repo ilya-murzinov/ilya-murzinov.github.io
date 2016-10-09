@@ -1,11 +1,7 @@
 ---
 title: About
-excerpt: ""
 modified: 2015-02-27T19:44:38.564948-04:00
 ---
-
-Hi there!
----------
 
 My name is Ilya and I'm a professional Java and Groovy developer and enthusiast Scala developer.
 

@@ -7,9 +7,22 @@ import           Hakyll
 import           System.FilePath (splitExtension)
 
 --------------------------------------------------------------------------------
+data SiteConfiguration = SiteConfiguration {
+  siteRoot :: String,
+  siteGaId :: String,
+  disqusName :: String
+}
+
+siteConf :: SiteConfiguration
+siteConf = SiteConfiguration {
+  siteRoot = "https://ilya-murzinov.github.io",
+  siteGaId = "UA-36422511-1",
+  disqusName = "ilyamurzinovgithubio"
+}
+
 main :: IO ()
 main = hakyll $ do
-    match ("images/*" .||. "content/certificates/*") $ do
+    match ("images/*" .||. "content/certificates/*" .||. "fonts/*") $ do
         route $ stripContent `composeRoutes` idRoute
         compile copyFileCompiler
 
@@ -20,7 +33,7 @@ main = hakyll $ do
     match ("content/*.markdown") $ do
         route $ stripContent `composeRoutes` customRoute indexRoute
         compile $ pandocCompiler
-            >>= loadAndApplyTemplate "templates/default.html" defaultContext
+            >>= loadAndApplyTemplate "templates/default.html" postCtx
             >>= relativizeUrls
 
     match allPosts $ do
@@ -43,7 +56,7 @@ main = hakyll $ do
             let indexCtx =
                     listField "posts" postCtx (return posts) `mappend`
                     constField "title" "Home" `mappend`
-                    defaultContext
+                    postCtx
 
             getResourceBody
                 >>= applyAsTemplate indexCtx
@@ -57,6 +70,9 @@ postCtx :: Context String
 postCtx =
     deIndexedUrl "url" `mappend`
     dateField "date" "%B %e, %Y" `mappend`
+    constField "root" (siteRoot siteConf) `mappend`
+    constField "gaId" (siteGaId siteConf) `mappend`
+    constField "disqusName" (disqusName siteConf) `mappend`
     defaultContext
 
 allPosts :: Pattern
