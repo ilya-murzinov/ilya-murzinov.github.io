@@ -16,7 +16,7 @@ data SiteConfiguration = SiteConfiguration {
 siteConf :: SiteConfiguration
 siteConf = SiteConfiguration {
   siteRoot = "https://ilya-murzinov.github.io",
-  siteGaId = "UA-36422511-1",
+  siteGaId = "UA-60047092-1",
   disqusName = "ilyamurzinovgithubio"
 }
 
