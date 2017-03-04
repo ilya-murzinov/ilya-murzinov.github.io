@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 import           Data.List       (intersperse, isSuffixOf)
 import           Data.List.Split
-import           Data.Monoid     (mappend)
+import           Data.Monoid     ()
 import           Hakyll
 import           System.FilePath (splitExtension)
 
@@ -45,7 +45,7 @@ main = hakyll $ do
             full <- loadAndApplyTemplate "templates/post.html" postCtx c
             teaser <- loadAndApplyTemplate "templates/teaser.html" postCtx $
                       extractTeaser c
-            saveSnapshot "teaser" teaser
+            _ <- saveSnapshot "teaser" teaser
             loadAndApplyTemplate "templates/default.html" postCtx full
                 >>= relativizeUrls
 
