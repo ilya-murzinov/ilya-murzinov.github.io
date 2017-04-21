@@ -48,10 +48,10 @@
 <li>I personally liked NUnit more than MS Test.</li>
 </ul>
 <!-- TEASER STOP -->
-<p>And then I discovered <a href="http://allure.qatools.ru">Allure Framework</a> - open-source tool which was developed by Yandex test team and it provides really great reports. You can browse their site, or watch <a href="http://teamcity.qatools.ru/repository/download/allure_core_master_release/lastSuccessful/index.html?guest=1#/home">sample report</a> to convince youself that it’s a very good. Allure consists of 2 important parts - adapter and generator. Adapter produces XML files in specific format for generator to generate the final report.</p>
+<p>And then I discovered <a href="http://allure.qatools.ru">Allure Framework</a> - open-source tool which was developed by Yandex test team and it provides really great reports. You can browse their site, or watch <a href="http://teamcity.qatools.ru/repository/download/allure_core_master_release/lastSuccessful/index.html?guest=1#/home">sample report</a> to convince yourself that it’s a very good. Allure consists of 2 important parts - adapter and generator. Adapter produces XML files in specific format for generator to generate the final report.</p>
 <p>Unfortunately, by the time I found Allure, there was no way to use it in C# project, because there was no adapter for C#. So if I wanted to use Allure, I had to develop a little addon for testing framework (MS Test or NUnit) which would generate XML report.</p>
 <p>But that was not a problem for me, I’m an open-source guy, so I quickly decided to develop adapter myself. Long story short, this is the result: <a href="https://github.com/allure-framework/allure-csharp-commons">core library</a> for .NET and <a href="https://github.com/allure-framework/allure-nunit">adapter</a> for NUnit 2. Core library is reusable which makes possible to develop adapters for any .NET testing framework. For example, <span class="citation">[@someuser77]</span>(https://github.com/someuser77) has developed <a href="https://github.com/allure-framework/allure-mstest-adapter">adapter</a> for MS Test.</p>
-<p><strong>Disclaimer:</strong> although core library (allure-csharp-commons) is well developed and tested, adapted itself (allure-nunit) may contain some bugs. In case of any troubles, you are welcome to raise an issue in <a href="https://github.com/allure-framework/allure-nunit/issues">bug tracker</a>. Pull-requests are of course also welcomed.</p>
+<p><strong>Disclaimer:</strong> although core library (allure-csharp-commons) is well developed and tested, adapter itself (allure-nunit) may contain some bugs. In case of any troubles, you are welcome to raise an issue in <a href="https://github.com/allure-framework/allure-nunit/issues">bug tracker</a>. Pull-requests are of course also welcomed.</p>
 <p>Ok, so we are good to go.</p>
 <h2 id="getting-work-done">Getting work done</h2>
 <p>End-to-end configuration is pretty tricky, but it can be simplified in the future by using plugins for TeamCity or Jenkins. The result will be *.bat-script you can use to run tests and generate report as a build step in you build server. I will describe this process for NUnit because I was personally using it. But it should be pretty much the same for MS Test.</p>
@@ -89,7 +89,7 @@
 
 <span class="kw">%NUNIT_HOME%</span>\bin\nunit-console.exe %ASSEMBLIES_DIR%\YourAssembly.dll /framework=net-4.0
 <span class="kw">%JAVA_HOME%</span>\bin\java -jar %ALLURE_CLI_HOME%\allure-cli.jar generate -v 1.4.0 %OUTPUT_DIR% -o %NGINX_HOME%\html\</code></pre></div>
-<p>You can run as much *.dll’s as you want or create an *.nuproj project cointaining all assemblies.</p>
+<p>You can run as much *.dll’s as you want or create an *.nuproj project containing all assemblies.</p>
 <p>Now we need to start Nginx and thats all! If you’ve done it right, you will see the report at <a href="http://localhost:8080" class="uri">http://localhost:8080</a> (depends on Nginx configuration).</p>
 <p>Note that this is only the basic configuration and it can of course be extended/modified.</p>
 <h2 id="problems">Problems</h2>
