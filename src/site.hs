@@ -22,7 +22,7 @@ siteConf = SiteConfiguration {
 
 main :: IO ()
 main = hakyll $ do
-    match ("images/*" .||. "content/certificates/*" .||. "fonts/*") $ do
+    match ("images/*" .||. "content/certificates/*" .||. "fonts/*" .||. "js/*") $ do
         route $ stripContent `composeRoutes` idRoute
         compile copyFileCompiler
 
@@ -30,7 +30,7 @@ main = hakyll $ do
         route   idRoute
         compile compressCssCompiler
 
-    match ("content/*.markdown") $ do
+    match "content/*.markdown" $ do
         route $ stripContent `composeRoutes` customRoute indexRoute
         compile $ pandocCompiler
             >>= loadAndApplyTemplate "templates/default.html" postCtx
@@ -39,7 +39,7 @@ main = hakyll $ do
     match allPosts $ do
         route $ stripContent `composeRoutes`
                 stripPosts `composeRoutes`
-                customRoute (\i -> indexRoute $ removeDate i)
+                customRoute (indexRoute . removeDate)
         compile $ do
             c <- pandocCompiler
             full <- loadAndApplyTemplate "templates/post.html" postCtx c
@@ -86,14 +86,14 @@ stripPosts = gsubRoute "posts/" $ const ""
 
 removeDate :: Identifier -> Identifier
 removeDate s =
-    fromFilePath $ concat $ folder ++ (intersperse "-" $ snd $ splitAt 3 $ splitOn "-" $ file)
+    fromFilePath $ concat $ folder ++ intersperse "-" (snd $ splitAt 3 $ splitOn "-" file)
         where
           (folder, file) = (intersperse "/" $ init l ++ ["/"], last l)
               where
                 l = splitOn "/" $ toFilePath s
 
 indexRoute :: Identifier -> FilePath
-indexRoute i = (name i) ++ "/index.html"
+indexRoute i = name i ++ "/index.html"
     where name path = fst $ splitExtension $ toFilePath path
 
 stripIndex :: String -> String

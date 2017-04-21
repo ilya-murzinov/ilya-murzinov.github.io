@@ -21,13 +21,13 @@ About a year ago I worked as a QA automation engineer and, of course, had to dea
 
 <!-- TEASER STOP -->
 
-And then I discovered [Allure Framework](http://allure.qatools.ru) - open-source tool which was developed by Yandex test team and it provides really great reports. You can browse their site, or watch [sample report](http://teamcity.qatools.ru/repository/download/allure_core_master_release/lastSuccessful/index.html?guest=1#/home) to convince youself that it's a very good. Allure consists of 2 important parts - adapter and generator. Adapter produces XML files in specific format for generator to generate the final report.
+And then I discovered [Allure Framework](http://allure.qatools.ru) - open-source tool which was developed by Yandex test team and it provides really great reports. You can browse their site, or watch [sample report](http://teamcity.qatools.ru/repository/download/allure_core_master_release/lastSuccessful/index.html?guest=1#/home) to convince yourself that it's a very good. Allure consists of 2 important parts - adapter and generator. Adapter produces XML files in specific format for generator to generate the final report.
 
 Unfortunately, by the time I found Allure, there was no way to use it in C# project, because there was no adapter for C#. So if I wanted to use Allure, I had to develop a little addon for testing framework (MS Test or NUnit) which would generate XML report.
 
-But that was not a problem for me, I'm an open-source guy, so I quickly decided to develop adapter myself. Long story short, this is the result: [core library](https://github.com/allure-framework/allure-csharp-commons) for .NET and [adapter](https://github.com/allure-framework/allure-nunit) for NUnit 2. Core library is reusable which makes possible to develop adapters for any .NET testing framework. For example, [@someuser77](https://github.com/someuser77) has developed [adapter](https://github.com/allure-framework/allure-mstest-adapter) for MS Test.
+But that was not a problem for me, I'm an open-source guy, so I quickly decided to develop adapter myself. Long story short, this is the result: [core library](https://github.com/allure-framework/allure-csharp-commons) for .NET and [adapter](https://github.com/allure-framework/allure-nunit) for NUnit 2. Core library is reusable which makes possible to develop adapters for any .NET testing framework. For example, [\@someuser77](https://github.com/someuser77) has developed [adapter](https://github.com/allure-framework/allure-mstest-adapter) for MS Test.
 
-**Disclaimer:** although core library (allure-csharp-commons) is well developed and tested, adapted itself (allure-nunit) may contain some bugs. In case of any troubles, you are welcome to raise an issue in  [bug tracker](https://github.com/allure-framework/allure-nunit/issues). Pull-requests are of course also welcomed.
+**Disclaimer:** although core library (allure-csharp-commons) is well developed and tested, adapter itself (allure-nunit) may contain some bugs. In case of any troubles, you are welcome to raise an issue in  [bug tracker](https://github.com/allure-framework/allure-nunit/issues). Pull-requests are of course also welcomed.
 
 Ok, so we are good to go.
 
@@ -82,7 +82,7 @@ set NGINX_HOME=C:\nginx-1.7.0
 %JAVA_HOME%\bin\java -jar %ALLURE_CLI_HOME%\allure-cli.jar generate -v 1.4.0 %OUTPUT_DIR% -o %NGINX_HOME%\html\
 ```
 
-You can run as much \*.dll's as you want or create an \*.nuproj project cointaining all assemblies.
+You can run as much \*.dll's as you want or create an \*.nuproj project containing all assemblies.
 
 Now we need to start Nginx and thats all! If you've done it right, you will see the report at [http://localhost:8080](http://localhost:8080) (depends on Nginx configuration).
 
