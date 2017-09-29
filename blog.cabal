@@ -6,7 +6,8 @@ cabal-version:      >= 1.10
 executable site
   main-is:          src/site.hs
   build-depends:    base == 4.*
-                  , hakyll == 4.7.*
+                  , hakyll == 4.9.*
+                  , pandoc == 1.19.*
                   , split == 0.2.*
                   , filepath == 1.4.*
   ghc-options:      -Wall -threaded

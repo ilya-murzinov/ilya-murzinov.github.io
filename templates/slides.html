@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Title</title>
+    <meta charset="utf-8">
+    <style>
+      @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
+      @import url(https://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic);
+
+      body { font-family: 'Droid Serif'; }
+      h1, h2, h3 {
+        font-family: 'Yanone Kaffeesatz';
+        font-weight: normal;
+      }
+      .remark-code, .remark-inline-code { font-family: 'Hack'; }
+      a:link { color: grey; }
+      a:visited { color: grey; }
+      a:hover { color: grey; }
+      a:active { color: grey; }
+    </style>
+  </head>
+  <body>
+    <textarea id="source">
+
+$body$
+
+    </textarea>
+    <script src="https://remarkjs.com/downloads/remark-latest.min.js">
+    </script>
+    <script>
+      var slideshow = remark.create({
+        ratio: '4:3',
+        navigation: {
+          scroll: false,
+          touch: true,
+          click: true,
+        },
+        highlightLanguage: 'scala',
+        highlightStyle: 'github',
+        highlightSpans: 'true',
+        highlightLines: 'true',
+      });
+    </script>
+  </body>
+</html>
