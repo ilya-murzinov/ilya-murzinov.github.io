@@ -7,7 +7,7 @@
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-        <title>Ilya Murzinov: "Introducing Allure in C# project"</title>
+        <title>Ilya Murzinov: Introducing Allure in C# project</title>
         <link rel="icon" type="image/png" href="../../images/favicon.png" />
         <link rel="icon" type="image/png" href="../../images/favicon-32x32.png" sizes="32x32" />
         <link rel="icon" type="image/png" href="../../images/favicon-16x16.png" sizes="16x16" />
@@ -31,7 +31,7 @@
         </div>
 
         <div id="content">
-            <h1>"Introducing Allure in C# project"</h1>
+            <h1>Introducing Allure in C# project</h1>
 
 <div class="info">
     Posted on February 25, 2015
@@ -65,11 +65,11 @@
 <li>Built *.dll assemblies with tests</li>
 </ol>
 <p>First of all, we need to install NUnit, allure-cli, JRE, Nginx and set environmental variables, for example (replace these values with yours):</p>
-<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="kw">set</span> <span class="ot">ASSEMBLIES_DIR=</span>C:\<span class="kw">project</span>\bin\debug
-<span class="kw">set</span> <span class="kw">NUNIT_HOME</span> = C:\NUnit-2.6.3
-<span class="kw">set</span> <span class="kw">ALLURE_CLI_HOME</span> = C:\allure-cli
-<span class="kw">set</span> <span class="kw">JAVA_HOME</span> = C:\Program Files\Java\jre-1.7.0_75
-<span class="kw">set</span> <span class="ot">NGINX_HOME=</span>C:\<span class="kw">nginx-1.7.0</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="kw">set</span> <span class="va">ASSEMBLIES_DIR=</span>C:\<span class="ex">project</span>\bin\debug
+<span class="kw">set</span> <span class="ex">NUNIT_HOME</span> = C:\NUnit-2.6.3
+<span class="kw">set</span> <span class="ex">ALLURE_CLI_HOME</span> = C:\allure-cli
+<span class="kw">set</span> <span class="ex">JAVA_HOME</span> = C:\Program Files\Java\jre-1.7.0_75
+<span class="kw">set</span> <span class="va">NGINX_HOME=</span>C:\<span class="ex">nginx-1.7.0</span></code></pre></div>
 <p>Next, we need to install nunit-adapter and configure it. Here are the steps to do it:</p>
 <ol style="list-style-type: decimal">
 <li>Unpack allure-nunit binaries to %NUNIT_HOME%</li>
@@ -78,17 +78,17 @@
 <li>You can also specify in configuration whether you want to take screenshots after failed tests and whether you want to have test output to be written to attachments</li>
 </ol>
 <p>After that we need to add new environmental variable OUTPUT_FOLDER pointing to the folder we specified in adapter’s config.xml:</p>
-<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="kw">set</span> <span class="ot">OUTPUT_DIR=</span>C:\<span class="kw">test-results</span>\AllureResults</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="kw">set</span> <span class="va">OUTPUT_DIR=</span>C:\<span class="ex">test-results</span>\AllureResults</code></pre></div>
 <p>After we set all variables comes the easy part - running tests and generating report. I’ll just provide the resulting *.bat-script, it’s self-explanatory:</p>
-<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="kw">set</span> <span class="ot">ASSEMBLIES_DIR=</span>C:\<span class="kw">project</span>\bin\debug
-<span class="kw">set</span> <span class="ot">NUNIT_HOME=</span>C:\<span class="kw">NUnit-2.6.3</span>
-<span class="kw">set</span> <span class="ot">ALLURE_CLI_HOME=</span>C:\<span class="kw">allure-cli</span>\allure-cli.jar
-<span class="kw">set</span> <span class="ot">JAVA_HOME=</span>C:\<span class="kw">Program</span> Files\Java\jre-1.7.0_75
-<span class="kw">set</span> <span class="ot">OUTPUT_DIR=</span>C:\<span class="kw">test-results</span>\AllureResults
-<span class="kw">set</span> <span class="ot">NGINX_HOME=</span>C:\<span class="kw">nginx-1.7.0</span>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="kw">set</span> <span class="va">ASSEMBLIES_DIR=</span>C:\<span class="ex">project</span>\bin\debug
+<span class="kw">set</span> <span class="va">NUNIT_HOME=</span>C:\<span class="ex">NUnit-2.6.3</span>
+<span class="kw">set</span> <span class="va">ALLURE_CLI_HOME=</span>C:\<span class="ex">allure-cli</span>\allure-cli.jar
+<span class="kw">set</span> <span class="va">JAVA_HOME=</span>C:\<span class="ex">Program</span> Files\Java\jre-1.7.0_75
+<span class="kw">set</span> <span class="va">OUTPUT_DIR=</span>C:\<span class="ex">test-results</span>\AllureResults
+<span class="kw">set</span> <span class="va">NGINX_HOME=</span>C:\<span class="ex">nginx-1.7.0</span>
 
-<span class="kw">%NUNIT_HOME%</span>\bin\nunit-console.exe %ASSEMBLIES_DIR%\YourAssembly.dll /framework=net-4.0
-<span class="kw">%JAVA_HOME%</span>\bin\java -jar %ALLURE_CLI_HOME%\allure-cli.jar generate -v 1.4.0 %OUTPUT_DIR% -o %NGINX_HOME%\html\</code></pre></div>
+<span class="ex">%NUNIT_HOME%</span>\bin\nunit-console.exe %ASSEMBLIES_DIR%\YourAssembly.dll /framework=net-4.0
+<span class="ex">%JAVA_HOME%</span>\bin\java -jar %ALLURE_CLI_HOME%\allure-cli.jar generate -v 1.4.0 %OUTPUT_DIR% -o %NGINX_HOME%\html\</code></pre></div>
 <p>You can run as much *.dll’s as you want or create an *.nuproj project containing all assemblies.</p>
 <p>Now we need to start Nginx and thats all! If you’ve done it right, you will see the report at <a href="http://localhost:8080" class="uri">http://localhost:8080</a> (depends on Nginx configuration).</p>
 <p>Note that this is only the basic configuration and it can of course be extended/modified.</p>

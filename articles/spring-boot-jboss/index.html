@@ -7,7 +7,7 @@
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-        <title>Ilya Murzinov: "Running a Spring Boot application on JBoss 7.1.1"</title>
+        <title>Ilya Murzinov: Running a Spring Boot application on JBoss 7.1.1</title>
         <link rel="icon" type="image/png" href="../../images/favicon.png" />
         <link rel="icon" type="image/png" href="../../images/favicon-32x32.png" sizes="32x32" />
         <link rel="icon" type="image/png" href="../../images/favicon-16x16.png" sizes="16x16" />
@@ -31,7 +31,7 @@
         </div>
 
         <div id="content">
-            <h1>"Running a Spring Boot application on JBoss 7.1.1"</h1>
+            <h1>Running a Spring Boot application on JBoss 7.1.1</h1>
 
 <div class="info">
     Posted on March  3, 2015
@@ -45,69 +45,69 @@
 <p>Of course, I can’t share the source code of our project, so I created a little example that reveals the underlying problem.</p>
 <h2 id="the-problem">The problem</h2>
 <p>Let’s take a look at a typical Spring Boot web application. Say we have only a controller, a filter and some component which is autowired into the filter (hereinafter imports omitted for brevity):</p>
-<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="fu">@RestController</span>
+<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="at">@RestController</span>
 <span class="kw">public</span> <span class="kw">class</span> HelloController {
-    <span class="fu">@RequestMapping</span>(<span class="st">&quot;/&quot;</span>)
-    <span class="kw">public</span> String <span class="fu">index</span>() {
+    <span class="at">@RequestMapping</span>(<span class="st">&quot;/&quot;</span>)
+    <span class="kw">public</span> <span class="bu">String</span> <span class="fu">index</span>() {
         <span class="kw">return</span> <span class="st">&quot;Greetings from Spring Boot!&quot;</span>;
     }
 }</code></pre></div>
-<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="fu">@Component</span>
+<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="at">@Component</span>
 <span class="kw">public</span> <span class="kw">class</span> HelloComponent {
     <span class="kw">public</span> <span class="dt">void</span> <span class="fu">go</span>() {
-        System.<span class="fu">out</span>.<span class="fu">println</span>(<span class="st">&quot;Inside filter's component&quot;</span>);
+        <span class="bu">System</span>.<span class="fu">out</span>.<span class="fu">println</span>(<span class="st">&quot;Inside filter's component&quot;</span>);
     }
 }</code></pre></div>
-<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="fu">@Component</span>
+<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="at">@Component</span>
 <span class="kw">public</span> <span class="kw">class</span> HelloFilter <span class="kw">extends</span> GenericFilterBean {
-    <span class="fu">@Autowired</span>
+    <span class="at">@Autowired</span>
     <span class="kw">private</span> HelloComponent component;
 
-    <span class="fu">@Override</span>
+    <span class="at">@Override</span>
     <span class="kw">public</span> <span class="dt">void</span> <span class="fu">doFilter</span>(ServletRequest servletRequest, ServletResponse servletResponse,
-                         FilterChain filterChain) <span class="kw">throws</span> IOException, ServletException {
+                         FilterChain filterChain) <span class="kw">throws</span> <span class="bu">IOException</span>, ServletException {
         component.<span class="fu">go</span>();
         filterChain.<span class="fu">doFilter</span>(servletRequest, servletResponse);
     }
 }</code></pre></div>
 <p>The main Application class:</p>
-<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="fu">@SpringBootApplication</span>
+<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="at">@SpringBootApplication</span>
 <span class="kw">public</span> <span class="kw">class</span> Application <span class="kw">extends</span> SpringBootServletInitializer {
-    <span class="kw">public</span> <span class="dt">static</span> <span class="dt">void</span> <span class="fu">main</span>(String[] args) {
+    <span class="kw">public</span> <span class="dt">static</span> <span class="dt">void</span> <span class="fu">main</span>(<span class="bu">String</span>[] args) {
         SpringApplication.<span class="fu">run</span>(Application.<span class="fu">class</span>);
     }
 
-    <span class="fu">@Override</span>
+    <span class="at">@Override</span>
     <span class="kw">protected</span> SpringApplicationBuilder <span class="fu">configure</span>(SpringApplicationBuilder application) {
         <span class="kw">return</span> application.<span class="fu">sources</span>(Application.<span class="fu">class</span>);
     }
 }</code></pre></div>
 <p>You can see the entire project <a href="https://github.com/ilya-murzinov/spring-boot-jboss/tree/master/spring-boot-jboss-initial">here</a>.</p>
 <p>Ok, let’s build it and run on Tomcat 7:</p>
-<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="kw">mvn</span> clean install
-$ <span class="kw">cp</span> ./spring-boot-jboss-initial/target/spring-boot-jboss-initial-1.0-SNAPSHOT.war ~/apache-tomcat-7.0.57/webapps/boot.war
-$ <span class="kw">~/apache-tomcat-7.0.57/bin/startup.sh</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="ex">mvn</span> clean install
+$ <span class="fu">cp</span> ./spring-boot-jboss-initial/target/spring-boot-jboss-initial-1.0-SNAPSHOT.war ~/apache-tomcat-7.0.57/webapps/boot.war
+$ <span class="ex">~/apache-tomcat-7.0.57/bin/startup.sh</span></code></pre></div>
 <p>And it works just fine:</p>
-<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="kw">curl</span> http://localhost:8080/boot
-<span class="kw">Greetings</span> from Spring Boot!</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="ex">curl</span> http://localhost:8080/boot
+<span class="ex">Greetings</span> from Spring Boot!</code></pre></div>
 <p>Now we deploy it on JBoss-7.1.1 (do not forget to stop Tomcat) and expect it to work fine as well:</p>
-<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="kw">cp</span> ./spring-boot-jboss-initial/target/spring-boot-jboss-initial-1.0-SNAPSHOT.war ~/jboss-7.1.1-Final/standalone/deployments/boot.war
-$ <span class="kw">~/jboss-7.1.1-Final/bin/standalone.sh</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="fu">cp</span> ./spring-boot-jboss-initial/target/spring-boot-jboss-initial-1.0-SNAPSHOT.war ~/jboss-7.1.1-Final/standalone/deployments/boot.war
+$ <span class="ex">~/jboss-7.1.1-Final/bin/standalone.sh</span></code></pre></div>
 <p>But here comes the big problem:</p>
-<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="kw">curl</span> http://localhost:8080/boot
-<span class="kw">&lt;html&gt;&lt;</span>head<span class="kw">&gt;&lt;</span>title<span class="kw">&gt;</span>JBoss Web/7.0.13.Final - Error report<span class="kw">&lt;</span>/title<span class="kw">&gt;&lt;</span>/head<span class="kw">&gt;</span>
-<span class="kw">&lt;body&gt;&lt;</span>h<span class="kw">1&gt;</span>HTTP Status 500 - The server encountered an internal error () <span class="kw">that</span> prevented it from fulfilling this request.
-<span class="kw">&lt;pre&gt;</span>java.lang.NullPointerException
-<span class="kw">com.github.ilyamurzinov.springbootjboss.HelloFilter.doFilter</span>(HelloFilter.java:29)
-<span class="kw">org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal</span>(CharacterEncodingFilter.java:88)
-<span class="kw">org.springframework.web.filter.OncePerRequestFilter.doFilter</span>(OncePerRequestFilter.java:107)
-<span class="kw">org.springframework.boot.context.web.ErrorPageFilter.doFilter</span>(ErrorPageFilter.java:108)
-<span class="kw">org.springframework.boot.context.web.ErrorPageFilter.access</span><span class="ot">$0</span>00(ErrorPageFilter.java:59)
-<span class="kw">org.springframework.boot.context.web.ErrorPageFilter</span><span class="ot">$1</span>.doFilterInternal(ErrorPageFilter.java:88)
-<span class="kw">org.springframework.web.filter.OncePerRequestFilter.doFilter</span>(OncePerRequestFilter.java:107)
-<span class="kw">org.springframework.boot.context.web.ErrorPageFilter.doFilter</span>(ErrorPageFilter.java:101)
-<span class="kw">&lt;</span>/<span class="kw">pre&gt;</span>
-<span class="kw">&lt;</span>/<span class="kw">body&gt;&lt;</span>/html<span class="kw">&gt;</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="ex">curl</span> http://localhost:8080/boot
+<span class="op">&lt;</span><span class="ex">html</span><span class="op">&gt;&lt;</span>head<span class="op">&gt;&lt;</span>title<span class="op">&gt;</span>JBoss Web/7.0.13.Final - Error report<span class="op">&lt;</span>/title<span class="op">&gt;&lt;</span>/head<span class="op">&gt;</span>
+<span class="op">&lt;</span><span class="ex">body</span><span class="op">&gt;&lt;</span>h1<span class="op">&gt;</span>HTTP Status 500 - The server encountered an internal error () <span class="ex">that</span> prevented it from fulfilling this request.
+<span class="op">&lt;</span><span class="ex">pre</span><span class="op">&gt;</span>java.lang.NullPointerException
+<span class="ex">com.github.ilyamurzinov.springbootjboss.HelloFilter.doFilter</span>(HelloFilter.java:29)
+<span class="ex">org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal</span>(CharacterEncodingFilter.java:88)
+<span class="ex">org.springframework.web.filter.OncePerRequestFilter.doFilter</span>(OncePerRequestFilter.java:107)
+<span class="ex">org.springframework.boot.context.web.ErrorPageFilter.doFilter</span>(ErrorPageFilter.java:108)
+<span class="ex">org.springframework.boot.context.web.ErrorPageFilter.access</span><span class="va">$0</span>00(ErrorPageFilter.java:59)
+<span class="ex">org.springframework.boot.context.web.ErrorPageFilter</span><span class="va">$1</span>.doFilterInternal(ErrorPageFilter.java:88)
+<span class="ex">org.springframework.web.filter.OncePerRequestFilter.doFilter</span>(OncePerRequestFilter.java:107)
+<span class="ex">org.springframework.boot.context.web.ErrorPageFilter.doFilter</span>(ErrorPageFilter.java:101)
+<span class="op">&lt;</span>/<span class="ex">pre</span><span class="op">&gt;</span>
+<span class="op">&lt;</span>/<span class="ex">body</span><span class="op">&gt;&lt;</span>/html<span class="op">&gt;</span></code></pre></div>
 <p>What happened?</p>
 <h2 id="analysis">Analysis</h2>
 <p>Line 29 (== line 9 in the above snippet) of <em>HelloFilter</em> is where <em>HelloComponent</em>’s method <em>go()</em> is called. It’s quite obvious that <em>HelloComponent</em> did not get autowired into the <em>HelloFilter</em> and thus <em>component == null</em>. This kind of situation commonly occures when some Spring’s component gets instantiated not by Spring.</p>
@@ -118,21 +118,21 @@ $ <span class="kw">~/jboss-7.1.1-Final/bin/standalone.sh</span></code></pre></di
             <span class="fu">getLogger</span>().<span class="fu">debug</span>(<span class="st">&quot;Starting filters&quot;</span>);
         <span class="co">// Instantiate and record a FilterConfig for each defined filter</span>
         <span class="dt">boolean</span> ok = <span class="kw">true</span>;
-        Iterator&lt;ApplicationFilterConfig&gt; filterConfigsIterator = 
+        <span class="bu">Iterator</span>&lt;ApplicationFilterConfig&gt; filterConfigsIterator = 
             filterConfigs.<span class="fu">values</span>().<span class="fu">iterator</span>();
         <span class="kw">while</span> (filterConfigsIterator.<span class="fu">hasNext</span>()) {
             ApplicationFilterConfig filterConfig = filterConfigsIterator.<span class="fu">next</span>();
             <span class="kw">try</span> {
                 filterConfig.<span class="fu">getFilter</span>();
-            } <span class="kw">catch</span> (Throwable t) {
+            } <span class="kw">catch</span> (<span class="bu">Throwable</span> t) {
                 <span class="fu">getLogger</span>().<span class="fu">error</span>
                 (sm.<span class="fu">getString</span>(<span class="st">&quot;standardContext.filterStart&quot;</span>, name), t);
                 ok = <span class="kw">false</span>;
             }
         }
-        Iterator&lt;String&gt; names = filterDefs.<span class="fu">keySet</span>().<span class="fu">iterator</span>();
+        <span class="bu">Iterator</span>&lt;<span class="bu">String</span>&gt; names = filterDefs.<span class="fu">keySet</span>().<span class="fu">iterator</span>();
         <span class="kw">while</span> (names.<span class="fu">hasNext</span>()) {
-            String name = names.<span class="fu">next</span>();
+            <span class="bu">String</span> name = names.<span class="fu">next</span>();
             <span class="kw">if</span> (<span class="fu">getLogger</span>().<span class="fu">isDebugEnabled</span>())
                 <span class="fu">getLogger</span>().<span class="fu">debug</span>(<span class="st">&quot; Starting filter '&quot;</span> + name + <span class="st">&quot;'&quot;</span>);
             ApplicationFilterConfig filterConfig = <span class="kw">null</span>;
@@ -141,7 +141,7 @@ $ <span class="kw">~/jboss-7.1.1-Final/bin/standalone.sh</span></code></pre></di
                 (<span class="kw">this</span>, (FilterDef) filterDefs.<span class="fu">get</span>(name));
                 filterConfig.<span class="fu">getFilter</span>();
                 filterConfigs.<span class="fu">put</span>(name, filterConfig);
-            } <span class="kw">catch</span> (Throwable t) {
+            } <span class="kw">catch</span> (<span class="bu">Throwable</span> t) {
                 <span class="fu">getLogger</span>().<span class="fu">error</span>
                 (sm.<span class="fu">getString</span>(<span class="st">&quot;standardContext.filterStart&quot;</span>, name), t);
                 ok = <span class="kw">false</span>;
@@ -165,13 +165,13 @@ $ <span class="kw">~/jboss-7.1.1-Final/bin/standalone.sh</span></code></pre></di
         <span class="kw">&lt;property</span><span class="ot"> name=</span><span class="st">&quot;enabled&quot;</span><span class="ot"> value=</span><span class="st">&quot;true&quot;</span> <span class="kw">/&gt;</span>
     <span class="kw">&lt;/bean&gt;</span>
 <span class="kw">&lt;/beans&gt;</span></code></pre></div>
-<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="fu">@Component</span>
+<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="at">@Component</span>
 <span class="kw">public</span> <span class="kw">class</span> JBossProxyInitializer <span class="kw">implements</span> BeanFactoryPostProcessor {
 
-    <span class="fu">@Override</span>
+    <span class="at">@Override</span>
     <span class="kw">public</span> <span class="dt">void</span> <span class="fu">postProcessBeanFactory</span>(ConfigurableListableBeanFactory beanFactory) <span class="kw">throws</span> BeansException {
         <span class="co">// Disabling filters created by Spring so JBoss wouldn't register them as well</span>
-        <span class="kw">for</span> (String name : beanFactory.<span class="fu">getBeanDefinitionNames</span>()) {
+        <span class="kw">for</span> (<span class="bu">String</span> name : beanFactory.<span class="fu">getBeanDefinitionNames</span>()) {
             <span class="kw">if</span> (!name.<span class="fu">contains</span>(<span class="st">&quot;FilterRegistrationBean&quot;</span>)) {
                 <span class="kw">continue</span>;
             }
@@ -181,51 +181,51 @@ $ <span class="kw">~/jboss-7.1.1-Final/bin/standalone.sh</span></code></pre></di
 
         FilterRegistrationBean filterRegistrationBean = <span class="kw">new</span> <span class="fu">FilterRegistrationBean</span>();
         filterRegistrationBean.<span class="fu">setFilter</span>(<span class="kw">new</span> Application.<span class="fu">HelloFilterProxy</span>());
-        filterRegistrationBean.<span class="fu">setUrlPatterns</span>(Collections.<span class="fu">singletonList</span>(<span class="st">&quot;/*&quot;</span>));
+        filterRegistrationBean.<span class="fu">setUrlPatterns</span>(<span class="bu">Collections</span>.<span class="fu">singletonList</span>(<span class="st">&quot;/*&quot;</span>));
 
         beanFactory.<span class="fu">registerSingleton</span>(<span class="st">&quot;helloFilterProxyFilterRegistrationBean&quot;</span>, filterRegistrationBean);
     }
 }</code></pre></div>
-<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="fu">@SpringBootApplication</span>
-<span class="fu">@ImportResource</span>(<span class="st">&quot;classpath:context.xml&quot;</span>)
+<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="at">@SpringBootApplication</span>
+<span class="at">@ImportResource</span>(<span class="st">&quot;classpath:context.xml&quot;</span>)
 <span class="kw">public</span> <span class="kw">class</span> Application <span class="kw">extends</span> SpringBootServletInitializer {
 
     <span class="kw">private</span> <span class="kw">volatile</span> <span class="dt">static</span> WebApplicationContext webApplicationContext;
 
-    <span class="fu">@Override</span>
+    <span class="at">@Override</span>
     <span class="kw">protected</span> WebApplicationContext <span class="fu">createRootApplicationContext</span>(ServletContext servletContext) {
         webApplicationContext = <span class="kw">super</span>.<span class="fu">createRootApplicationContext</span>(servletContext);
         <span class="kw">return</span> webApplicationContext;
     }
 
-    <span class="fu">@Override</span>
+    <span class="at">@Override</span>
     <span class="kw">protected</span> SpringApplicationBuilder <span class="fu">configure</span>(SpringApplicationBuilder builder) {
         <span class="kw">return</span> builder.<span class="fu">sources</span>(Application.<span class="fu">class</span>, JBossProxyInitializer.<span class="fu">class</span>);
     }
 
-    <span class="kw">public</span> <span class="dt">static</span> <span class="dt">void</span> <span class="fu">main</span>(String[] args) {
+    <span class="kw">public</span> <span class="dt">static</span> <span class="dt">void</span> <span class="fu">main</span>(<span class="bu">String</span>[] args) {
         SpringApplication.<span class="fu">run</span>(Application.<span class="fu">class</span>);
     }
 
     <span class="kw">public</span> <span class="dt">static</span> <span class="kw">class</span> HelloFilterProxy <span class="kw">extends</span> DelegatingFilterProxy {
-        <span class="fu">@Override</span>
-        <span class="kw">protected</span> Filter <span class="fu">initDelegate</span>(WebApplicationContext wac) <span class="kw">throws</span> ServletException {
+        <span class="at">@Override</span>
+        <span class="kw">protected</span> <span class="bu">Filter</span> <span class="fu">initDelegate</span>(WebApplicationContext wac) <span class="kw">throws</span> ServletException {
             <span class="kw">return</span> Application.<span class="fu">webApplicationContext</span>.<span class="fu">getBean</span>(HelloFilter.<span class="fu">class</span>);
         }
     }</code></pre></div>
 <p>If you need to use more filters you should use (if not using already) <em>org.springframework.web.filter.CompositeFilter</em>.</p>
 <p>Now we have our filter instantiated and registered correctly, let’s test it:</p>
-<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="kw">curl</span> http://localhost:8080/boot
-<span class="kw">&lt;html&gt;&lt;</span>head<span class="kw">&gt;&lt;</span>title<span class="kw">&gt;</span>JBoss Web/7.0.13.Final - Error report<span class="kw">&lt;</span>/title<span class="kw">&gt;</span>
-<span class="kw">&lt;</span>/<span class="kw">head&gt;&lt;</span>body<span class="kw">&gt;&lt;</span>h<span class="kw">1&gt;</span>HTTP Status 404 - /boot/<span class="kw">&lt;</span>/h<span class="kw">1&gt;</span>
-<span class="kw">&lt;p&gt;&lt;</span>b<span class="kw">&gt;</span>type<span class="kw">&lt;</span>/b<span class="kw">&gt;</span> Status report<span class="kw">&lt;</span>/p<span class="kw">&gt;&lt;</span>p<span class="kw">&gt;</span>
-<span class="kw">&lt;b&gt;</span>message<span class="kw">&lt;</span>/b<span class="kw">&gt;</span> <span class="kw">&lt;</span>u<span class="kw">&gt;</span>/boot/<span class="kw">&lt;</span>/u<span class="kw">&gt;&lt;</span>/p<span class="kw">&gt;&lt;</span>p<span class="kw">&gt;&lt;</span>b<span class="kw">&gt;</span>description<span class="kw">&lt;</span>/b<span class="kw">&gt;</span> 
-<span class="kw">&lt;u&gt;</span>The requested resource (/boot/) <span class="kw">is</span> not available.<span class="kw">&lt;</span>/u<span class="kw">&gt;&lt;</span>/p<span class="kw">&gt;</span>
-<span class="kw">&lt;h3&gt;</span>JBoss Web/7.0.13.Final<span class="kw">&lt;</span>/h<span class="kw">3&gt;&lt;</span>/body<span class="kw">&gt;&lt;</span>/html<span class="kw">&gt;</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="ex">curl</span> http://localhost:8080/boot
+<span class="op">&lt;</span><span class="ex">html</span><span class="op">&gt;&lt;</span>head<span class="op">&gt;&lt;</span>title<span class="op">&gt;</span>JBoss Web/7.0.13.Final - Error report<span class="op">&lt;</span>/title<span class="op">&gt;</span>
+<span class="op">&lt;</span>/<span class="ex">head</span><span class="op">&gt;&lt;</span>body<span class="op">&gt;&lt;</span>h1<span class="op">&gt;</span>HTTP Status 404 - /boot/<span class="op">&lt;</span>/h1<span class="op">&gt;</span>
+<span class="op">&lt;</span><span class="ex">p</span><span class="op">&gt;&lt;</span>b<span class="op">&gt;</span>type<span class="op">&lt;</span>/b<span class="op">&gt;</span> Status report<span class="op">&lt;</span>/p<span class="op">&gt;&lt;</span>p<span class="op">&gt;</span>
+<span class="op">&lt;</span><span class="ex">b</span><span class="op">&gt;</span>message<span class="op">&lt;</span>/b<span class="op">&gt;</span> <span class="op">&lt;</span>u<span class="op">&gt;</span>/boot/<span class="op">&lt;</span>/u<span class="op">&gt;&lt;</span>/p<span class="op">&gt;&lt;</span>p<span class="op">&gt;&lt;</span>b<span class="op">&gt;</span>description<span class="op">&lt;</span>/b<span class="op">&gt;</span> 
+<span class="op">&lt;</span><span class="ex">u</span><span class="op">&gt;</span>The requested resource (/boot/) <span class="ex">is</span> not available.<span class="op">&lt;</span>/u<span class="op">&gt;&lt;</span>/p<span class="op">&gt;</span>
+<span class="op">&lt;</span><span class="ex">h3</span><span class="op">&gt;</span>JBoss Web/7.0.13.Final<span class="op">&lt;</span>/h3<span class="op">&gt;&lt;</span>/body<span class="op">&gt;&lt;</span>/html<span class="op">&gt;</span></code></pre></div>
 <p>That’s definitely better than NPE, but still not what we expected. Why did that happen?</p>
 <p>Appears that JBoss treats servlets just like filters and thus Spring’s <em>DispatcherServlet</em> does not get instantiated properly. So we need to add a proxy for this servlet to <em>JBossProxyInitializer</em> as well:</p>
-<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="fu">@SpringBootApplication</span>
-<span class="fu">@ImportResource</span>(<span class="st">&quot;classpath:context.xml&quot;</span>)
+<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="at">@SpringBootApplication</span>
+<span class="at">@ImportResource</span>(<span class="st">&quot;classpath:context.xml&quot;</span>)
 <span class="kw">public</span> <span class="kw">class</span> Application <span class="kw">extends</span> SpringBootServletInitializer {
     <span class="co">/* ... */</span>
 
@@ -233,52 +233,52 @@ $ <span class="kw">~/jboss-7.1.1-Final/bin/standalone.sh</span></code></pre></di
 
         <span class="kw">private</span> Servlet delegate;
 
-        <span class="fu">@Override</span>
+        <span class="at">@Override</span>
         <span class="kw">public</span> <span class="dt">void</span> <span class="fu">init</span>(ServletConfig config) <span class="kw">throws</span> ServletException {
             delegate = Application.<span class="fu">webApplicationContext</span>.<span class="fu">getBean</span>(DispatcherServlet.<span class="fu">class</span>);
             delegate.<span class="fu">init</span>(config);
         }
 
-        <span class="fu">@Override</span>
+        <span class="at">@Override</span>
         <span class="kw">public</span> ServletConfig <span class="fu">getServletConfig</span>() {
             <span class="kw">return</span> delegate.<span class="fu">getServletConfig</span>();
         }
 
-        <span class="fu">@Override</span>
-        <span class="kw">public</span> <span class="dt">void</span> <span class="fu">service</span>(ServletRequest req, ServletResponse res) <span class="kw">throws</span> ServletException, IOException {
+        <span class="at">@Override</span>
+        <span class="kw">public</span> <span class="dt">void</span> <span class="fu">service</span>(ServletRequest req, ServletResponse res) <span class="kw">throws</span> ServletException, <span class="bu">IOException</span> {
             delegate.<span class="fu">service</span>(req, res);
         }
 
-        <span class="fu">@Override</span>
-        <span class="kw">public</span> String <span class="fu">getServletInfo</span>() {
+        <span class="at">@Override</span>
+        <span class="kw">public</span> <span class="bu">String</span> <span class="fu">getServletInfo</span>() {
             <span class="kw">return</span> delegate.<span class="fu">getServletInfo</span>();
         }
 
-        <span class="fu">@Override</span>
+        <span class="at">@Override</span>
         <span class="kw">public</span> <span class="dt">void</span> <span class="fu">destroy</span>() {
             delegate.<span class="fu">destroy</span>();
         }
     }
 }</code></pre></div>
-<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="fu">@Component</span>
+<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="at">@Component</span>
 <span class="kw">public</span> <span class="kw">class</span> JBossProxyInitializer <span class="kw">implements</span> BeanFactoryPostProcessor {
 
-    <span class="fu">@Override</span>
+    <span class="at">@Override</span>
     <span class="kw">public</span> <span class="dt">void</span> <span class="fu">postProcessBeanFactory</span>(ConfigurableListableBeanFactory beanFactory) <span class="kw">throws</span> BeansException {
         <span class="co">/* ... */</span>
 
         ServletRegistrationBean servletRegistrationBean = <span class="kw">new</span> <span class="fu">ServletRegistrationBean</span>();
         servletRegistrationBean.<span class="fu">setServlet</span>(<span class="kw">new</span> Application.<span class="fu">DispatcherServletProxy</span>());
-        servletRegistrationBean.<span class="fu">setUrlMappings</span>(Collections.<span class="fu">singletonList</span>(<span class="st">&quot;/*&quot;</span>));
+        servletRegistrationBean.<span class="fu">setUrlMappings</span>(<span class="bu">Collections</span>.<span class="fu">singletonList</span>(<span class="st">&quot;/*&quot;</span>));
 
         beanFactory.<span class="fu">registerSingleton</span>(<span class="st">&quot;dispatcherServletProxyRegistrationBean&quot;</span>, servletRegistrationBean);
     }
 }</code></pre></div>
 <p>And finally:</p>
-<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="kw">cp</span> ./spring-boot-jboss-final/target/spring-boot-jboss-final-1.0-SNAPSHOT.war ~/jboss-7.1.1-Final/standalone/deployments/boot.war
-$ <span class="kw">~/jboss-7.1.1-Final/bin/standalone.sh</span>
-$ <span class="kw">curl</span> http://localhost:8080/boot
-<span class="kw">Greetings</span> from Spring Boot!</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="fu">cp</span> ./spring-boot-jboss-final/target/spring-boot-jboss-final-1.0-SNAPSHOT.war ~/jboss-7.1.1-Final/standalone/deployments/boot.war
+$ <span class="ex">~/jboss-7.1.1-Final/bin/standalone.sh</span>
+$ <span class="ex">curl</span> http://localhost:8080/boot
+<span class="ex">Greetings</span> from Spring Boot!</code></pre></div>
 <h2 id="conclusion">Conclusion</h2>
 <p>Although, the strange JBoss’s behaviour still remains a mystery to me, the workaround described above lets an application run normally on this application server. The only drawback of this solution (except it being an ugly hack :) ) is that it doesn’t scale when it comes to servlets. This means that you <em>have</em> to create a proxy for every servlet in your application.</p>
 <p>Any questions are welcome in comments.</p>
