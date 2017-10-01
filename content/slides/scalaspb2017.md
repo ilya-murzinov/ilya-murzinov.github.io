@@ -1,3 +1,7 @@
+---
+title: Typelevel computations with Scala
+---
+
 class: middle, center
 
 # Typelevel computations with Scala
@@ -7,6 +11,8 @@ class: middle, center
 [https://twitter.com/ilyamurzinov](https://twitter.com/ilyamurzinov)
 
 [https://github.com/ilya-murzinov](https://github.com/ilya-murzinov)
+
+.bottom[[https://ilya-murzinov.github.io/slides/scalaspb2017](https://ilya-murzinov.github.io/slides/scalaspb2017)]
 
 ---
 
@@ -20,17 +26,25 @@ class: middle, center
 
 # Why?
 
+???
+We love types for being able to catch errors in compile time
+
+Maybe you have heard that Scala typesystem is Turing complete, therefore,
+we can run arbitrary computations in compile-time
+
+It's interesting how exactly meaningful computations can be implemented and
+how far we go with it
+
 ---
 
-# Because it's freaking cool
---
+# We can do amazing things in Haskell
 
-... and we can do this with Haskell
-
-<img src="/images/scalaspb/typing-the-technical-interview.png" height="400px"/>
+<img src="/images/scalaspb2017/typing-the-technical-interview.png" height="400px"/>
 
 ???
-Staring with Haskell is never good
+Staring with Haskell is never good, but I'll try to keep it simple
+
+There will be no mentions of Monad except this one, honestly
 
 Kyle Kingsbury
 
@@ -40,7 +54,16 @@ Distributed system correctness
 
 # N queens problem
 
-<img src="/images/scalaspb/nqueens.jpg" height="450px"/>
+<img src="/images/scalaspb2017/nqueens.jpg" height="450px"/>
+
+???
+Problem is to find ALL solutions for given N
+
+---
+
+# Algorythm
+
+<img src="/images/scalaspb2017/nqueens-algorythm.gif" height="450px"/>
 
 ???
 Algorythm - recursively for every queen in row check if it's safe,
@@ -100,8 +123,12 @@ trait Nat {
 trait Z extends Nat {
   type Add[A <: Nat] = A
 }
+```
+--
+
+```scala
 trait Succ[N <: Nat] extends Nat {
-  type Add[A <: Nat] = Succ[Z#Add[A]]
+  type Add[A <: Nat] = `Succ[Z#Add[A]]`
 }
 ```
 
@@ -121,15 +148,24 @@ scala> print(42)
 ```
 --
 
-Deep in some imported library:
+Deep down in some imported library:
 
 ```scala
+trait Encoder { // <-- typeclass
+  def print[A](a: A)
+}
+
 implicit val encoder = new Encoder[Int] {
   def print(i: Int) = i.toString
 }
 ```
 
 ???
+This is a trivial case
+
+Scala compiler can resolve complex implicits
+by dividing them into simple ones
+
 Out typeclasses will not have value-level methods
 
 ---
@@ -147,7 +183,6 @@ Type member is like type parameter
 
 Think of it as a result and type parameters as arguments
 --
-
 
 ```scala
 implicit def a0[A]: Add[`_0`, A] { type Out = A } = `???`
@@ -254,7 +289,7 @@ implicit def dummy[`R1`, `R2`](
 
 ---
 
-# The really useful typeclass
+# The real typeclass
 
 ```scala
 trait Threatens[Q1 <: Queen[_, _], Q2 <: Queen[_, _]]
@@ -348,7 +383,7 @@ class: middle, center
 
 # Diverging implicit expansion
 
-<img src="/images/scalaspb/spiewak.png" height="250px"/>
+<img src="/images/scalaspb2017/spiewak.png" height="250px"/>
 --
 
 &nbsp;
@@ -381,7 +416,6 @@ T[C[S, V]]
 T[S]
 T[C[V, C[V, V]]] // <- more complex
 ```
-
 --
 
 ```scalac
@@ -401,7 +435,11 @@ trait V
 trait T[A]
 trait C[A, B]
 
-implicit def a0[A, B](implicit ta: `shapeless.Lazy`[T[A]], tb: T[B]): T[C[A, B]] = ???
+implicit def a0[A, B](implicit
+  ta: `shapeless.Lazy`[T[A]],
+  tb: T[B]
+): T[C[A, B]] = ???
+
 implicit def a1(implicit a: T[C[V, C[V, V]]]): T[S] = ???
 implicit val a2: T[V] = ???
 
@@ -410,27 +448,101 @@ implicitly[T[C[S, V]]]
 
 ---
 
-# What to do with all this
+# How can we use all this?
 
-- programming with dependent types
+- for fun
+
 --
 
-- typeclass derivations (Shapeless)
+- for typeclass derivation with Shapeless
+
+--
+
+- ... and even encode dependent types in Scala
+
+---
+
+# Dependent types in Scala
+--
+
+```scala
+trait Sized[+A] {
+  type Size
+  def value: List[A]
+
+  def concat[B >: A](other: Sized[B])(implicit
+    `a: Add[Size, other.Size]`
+  ): Sized[B] { type Size = a.Out } = new Sized[B] {
+      type Size = `a.Out`
+      def value = `other.value ::: Sized.this.value`
+    }
+}
+```
+
+---
+
+# Dependent types in Scala
+
+```scala
+object SNil extends Sized[Nothing] {
+  type Size = _0
+  def value = Nil
+}
+```
+--
+
+```scala
+class SCons[+A](head: A, tail: Sized[A]) extends Sized[A] {
+  def value = head :: tail.value
+}
+object SCons {
+  type Aux[+A, S] = SCons[A] {type Size = S}
+  def apply[A](head: A, tail: Sized[A])(implicit
+    a: Add[tail.Size, _1]
+  ): Aux[A, a.Out] = new SCons[A](head, tail) {type Size = a.Out}
+}
+```
+
+---
+
+# Summary
+
+Scala type system/compiler is smart enough to do work for us.
+
+--
+
+Even as complex as solving N queens problem.
+
+--
+
+With discussed techniques and patterns we can encode such the logic quite easily.
+
+--
+
+And even readable to some extent.
+
+--
+
+But it's still very hard to debug.
 
 ---
 
 # References
 
 - ["The Type Astronaut's Guide to Shapeless" by Dave Gurnell](https://github.com/underscoreio/shapeless-guide)
+
 --
 
 - ["Hacking on scalac — 0 to PR in an hour" by Miles Sabin](https://milessabin.com/blog/2016/05/13/scalac-hacking/)
+
 --
 
 - ["Typing the technical interview" by Kyle Kingsbury, a.k.a "Aphyr"](https://aphyr.com/posts/342-typing-the-technical-interview)
+
 --
 
-- [Slides](https://ilya-murzinov.github.io/slides/scalaspb/)
+- [These slides](https://ilya-murzinov.github.io/slides/scalaspb2017/)
+
 --
 
 - [Solution of N queens problem on type level](https://scastie.scala-lang.org/ilya-murzinov/mNhJH6kdQFyfa59Vzs2OhA)
