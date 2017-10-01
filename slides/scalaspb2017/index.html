@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Title</title>
+    <title>Typelevel computations with Scala</title>
     <meta charset="utf-8">
     <style>
       @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
@@ -32,6 +32,8 @@ class: middle, center
 
 [https://github.com/ilya-murzinov](https://github.com/ilya-murzinov)
 
+.bottom[[https://ilya-murzinov.github.io/slides/scalaspb2017](https://ilya-murzinov.github.io/slides/scalaspb2017)]
+
 ---
 
 class: middle, center
@@ -44,17 +46,25 @@ class: middle, center
 
 # Why?
 
+???
+We love types for being able to catch errors in compile time
+
+Maybe you have heard that Scala typesystem is Turing complete, therefore,
+we can run arbitrary computations in compile-time
+
+It's interesting how exactly meaningful computations can be implemented and
+how far we go with it
+
 ---
 
-# Because it's freaking cool
---
+# We can do amazing things in Haskell
 
-... and we can do this with Haskell
-
-<img src="../../images/scalaspb/typing-the-technical-interview.png" height="400px" />
+<img src="../../images/scalaspb2017/typing-the-technical-interview.png" height="400px" />
 
 ???
-Staring with Haskell is never good
+Staring with Haskell is never good, but I'll try to keep it simple
+
+There will be no mentions of Monad except this one, honestly
 
 Kyle Kingsbury
 
@@ -64,7 +74,16 @@ Distributed system correctness
 
 # N queens problem
 
-<img src="../../images/scalaspb/nqueens.jpg" height="450px" />
+<img src="../../images/scalaspb2017/nqueens.jpg" height="450px" />
+
+???
+Problem is to find ALL solutions for given N
+
+---
+
+# Algorythm
+
+<img src="../../images/scalaspb2017/nqueens-algorythm.gif" height="450px" />
 
 ???
 Algorythm - recursively for every queen in row check if it's safe,
@@ -124,8 +143,12 @@ trait Nat {
 trait Z extends Nat {
   type Add[A <: Nat] = A
 }
+```
+--
+
+```scala
 trait Succ[N <: Nat] extends Nat {
-  type Add[A <: Nat] = Succ[Z#Add[A]]
+  type Add[A <: Nat] = `Succ[Z#Add[A]]`
 }
 ```
 
@@ -145,15 +168,24 @@ scala> print(42)
 ```
 --
 
-Deep in some imported library:
+Deep down in some imported library:
 
 ```scala
+trait Encoder { // <-- typeclass
+  def print[A](a: A)
+}
+
 implicit val encoder = new Encoder[Int] {
   def print(i: Int) = i.toString
 }
 ```
 
 ???
+This is a trivial case
+
+Scala compiler can resolve complex implicits
+by dividing them into simple ones
+
 Out typeclasses will not have value-level methods
 
 ---
@@ -171,7 +203,6 @@ Type member is like type parameter
 
 Think of it as a result and type parameters as arguments
 --
-
 
 ```scala
 implicit def a0[A]: Add[`_0`, A] { type Out = A } = `???`
@@ -278,7 +309,7 @@ implicit def dummy[`R1`, `R2`](
 
 ---
 
-# The really useful typeclass
+# The real typeclass
 
 ```scala
 trait Threatens[Q1 <: Queen[_, _], Q2 <: Queen[_, _]]
@@ -372,7 +403,7 @@ class: middle, center
 
 # Diverging implicit expansion
 
-<img src="../../images/scalaspb/spiewak.png" height="250px" />
+<img src="../../images/scalaspb2017/spiewak.png" height="250px" />
 --
 
 &nbsp;
@@ -405,7 +436,6 @@ T[C[S, V]]
 T[S]
 T[C[V, C[V, V]]] // <- more complex
 ```
-
 --
 
 ```scalac
@@ -436,6 +466,9 @@ implicitly[T[C[S, V]]]
 
 # What to do with all this
 
+- for fun
+--
+
 - programming with dependent types
 --
 
@@ -454,7 +487,7 @@ implicitly[T[C[S, V]]]
 - ["Typing the technical interview" by Kyle Kingsbury, a.k.a "Aphyr"](https://aphyr.com/posts/342-typing-the-technical-interview)
 --
 
-- [Slides](https://ilya-murzinov.github.io/slides/scalaspb/)
+- [Slides](https://ilya-murzinov.github.io/slides/scalaspb2017/)
 --
 
 - [Solution of N queens problem on type level](https://scastie.scala-lang.org/ilya-murzinov/mNhJH6kdQFyfa59Vzs2OhA)
@@ -480,8 +513,9 @@ class: center, middle
         navigation: {
           scroll: false,
           touch: true,
-          click: true,
+          click: false,
         },
+        countIncrementalSlides: false,
         highlightLanguage: 'scala',
         highlightStyle: 'github',
         highlightSpans: 'true',
