@@ -23,6 +23,7 @@ class: middle, center
 ---
 
 # Because it's freaking cool
+--
 
 ... and we can do this with Haskell
 
@@ -69,58 +70,19 @@ then add it and move to the next row
 ```scala
 trait Nat
 trait Z extends Nat
-trait Succ[Z] extends Nat
+trait Succ[N <: Nat] extends Nat
 ```
-
-???
-Type bounds are left hereinafter
-
 --
 
 ```scala
 type _0 = Z
-type _1 = Succ[Z]
+type _1 = Succ[_0]
 type _2 = Succ[_1]
 type _3 = Succ[_2]
 type _4 = Succ[_3]
 type _5 = Succ[_4]
 
 // and so on
-```
----
-
-# Linked list
-
-```scala
-trait List
-
-trait Nil extends List
-trait Cons[H, T] extends List
-```
-
----
-
-# Infix types
-
-```scala
-type T1 = Cons[A, B]
-
-type T2 = A Cons B
-```
---
-
-```scala
-type ::[H, T] = Cons[H, T]
-```
---
-
-```scala
-type T3 = A :: B
-```
---
-
-```scala
-type L = _1 :: _2 :: _3 :: Nil
 ```
 
 ---
@@ -129,55 +91,79 @@ type L = _1 :: _2 :: _3 :: Nil
 
 ```scala
 trait Nat {
-  type Add[A]
+  type Add[A <: Nat]
 }
 ```
 --
 
 ```scala
 trait Z extends Nat {
-  type Add[A] = A
+  type Add[A <: Nat] = A
 }
-trait Succ[Z] extends Nat {
-  type Add[A] = Succ[Z#Add[A]]
+trait Succ[N <: Nat] extends Nat {
+  type Add[A <: Nat] = Succ[Z#Add[A]]
 }
 ```
 
 ---
 
-class: middle, center
+# Typeclasses
+--
 
-# Typeclasses!
+```scala
+def print[A](a: A)(implicit e: Encoder[A]): String = e.print(a)
+```
+--
+
+```scala
+scala> print(42)
+42
+```
+--
+
+Deep in some imported library:
+
+```scala
+implicit val encoder = new Encoder[Int] {
+  def print(i: Int) = i.toString
+}
+```
+
+???
+Out typeclasses will not have value-level methods
 
 ---
 
 # The Add typeclass
 
 ```scala
-class Add[A, B] {type Out}
+class Add[A, B] { type Out }
+```
+
+???
+Type bounds are left hereinafter
+
+Type member is like type parameter
+
+Think of it as a result and type parameters as arguments
+--
+
+
+```scala
+implicit def a0[A]: Add[`_0`, A] { type Out = A } = `???`
 ```
 --
 
 ```scala
-implicit def a0[A]: Add[`_0`, A] {type Out = A} = `???`
-```
---
-
-```scala
-implicit def a1[A]: Add[A, `_0`] {type Out = A} = ???
+implicit def a1[A]: Add[A, `_0`] { type Out = A } = ???
 ```
 --
 
 ```scala
 implicit def a2[A, B, C](implicit
-  a: `Add[A, B]{type Out = C}`
-): `Add[Succ[A], B] {type Out = Succ[C]}` = ???
+  a: `Add[A, B] { type Out = C }`
+): `Add[Succ[A], B] { type Out = Succ[C] }` = ???
 ```
-
-???
-Type member is like type parameter
-
-Think of it as a result and type parameters as arguments
 
 ---
 
@@ -185,7 +171,7 @@ Think of it as a result and type parameters as arguments
 --
 
 ```scala
-def implicitly[A](implicit a: A) = ???
+def implicitly[A](implicit a: A) = a
 ```
 --
 
@@ -216,7 +202,7 @@ Type member is erased
 --
 
 ```scala
-class Add[A, B] {type Out}
+class Add[A, B] { type Out }
 object Add {
   type Aux[A, B, C] = Add[A, B] { type Out = C }
 ```
@@ -230,13 +216,111 @@ object Add {
 
 ```scala
 scala> :t Add[_1, _2]
-Add[Succ[Z],Succ[Succ[Z]]]{type Out = Succ[Succ[Succ[Z]]]}
+Add[Succ[Z],Succ[Succ[Z]]]`{type Out = Succ[Succ[Succ[Z]]]}`
 ```
 
 ???
 apply instead of implicitly
 
 ---
+
+# The Aux pattern
+
+```scala
+implicit def dummy(
+  implicit
+  a: Add[_1, _2],
+  b: Add[_3, _4],
+  c: Add[`a.Out`, `b.Out`]
+) = ???
+```
+--
+
+```scala
+error: illegal dependent method type: parameter may only be
+       referenced in a subsequent parameter section
+  a: Add[_1, _2]
+```
+--
+
+```scala
+implicit def dummy[`R1`, `R2`](
+  implicit
+  a: `Add.Aux[_1, _2, R1]`,
+  b: `Add.Aux[_3, _4, R2]`,
+  c: Add[`R1`, `R2`]
+): c.Out = ???
+```
+
+---
+
+# The really useful typeclass
+
+```scala
+trait Threatens[Q1 <: Queen[_, _], Q2 <: Queen[_, _]]
+  { type Out <: Bool }
+
+object Threatens {
+  type Aux[Q1 <: Queen[_, _], Q2 <: Queen[_, _], R <: Bool] =
+    Threatens[Q1, Q2] { type Out = R }
+
+  implicit def t0[X1 <: Nat, Y1 <: Nat, X2 <: Nat, Y2 <: Nat,
+                  EqX <: Bool, EqY <: Bool, EqXY <: Bool,
+                  DX <: Nat, DY <: Nat, EqD <: Bool](
+      implicit
+      `eqX: Eq.Aux[X1, X2, EqX],`
+      `eqY: Eq.Aux[Y1, Y2, EqY],`
+      `or0: Or.Aux[EqX, EqY, EqXY],`
+      `dx: AbsDiff.Aux[X1, X2, DX],`
+      `dy: AbsDiff.Aux[Y1, Y2, DY],`
+      `eqD: Eq.Aux[DX, DY, EqD],`
+      `res: Or[EqXY, EqD]`):
+      Aux[Queen[X1, Y1], Queen[X2, Y2], res.Out] = ???
+}
+```
+
+---
+
+class: center, middle
+
+# What typeclasses are required for solution?
+
+---
+
+```scala
+trait `First`[L <: List] { type Out }
+trait `Concat`[A <: List, B <: List] { type Out <: List }
+trait `ConcatAll`[Ls <: List] { type Out <: List }
+trait `AnyTrue`[L] { type Out <: Bool }
+trait `Not`[A <: Bool] { type Out <: Bool }
+trait `Or`[A <: Bool, B <: Bool] { type Out <: Bool }
+trait `Eq`[A <: Nat, B <: Nat] { type Out <: Bool }
+trait `Lt`[A <: Nat, B <: Nat] { type Out <: Bool }
+trait `AbsDiff`[A <: Nat, B <: Nat] { type Out <: Nat }
+trait `Range`[A <: Nat] { type Out <: List }
+trait `Apply`[F <: Func, A] { type Out }
+trait `Map`[F <: Func, L <: List] { type Out <: List }
+trait `MapCat`[F <: Func, L <: List] { type Out <: List }
+trait `AppendIf`[B <: Bool, A, L <: List] { type Out <: List }
+trait `Filter`[F <: Func, L <: List] { type Out <: List }
+trait `QueensInRow[Y <: Nat, N <: Nat] { type Out <: List }
+trait `Threatens`[Q1 <: Queen[_, _], Q2 <: Queen[_, _]]
+  { type Out <: Bool }
+trait `Safe`[Config <: List, Q <: Queen[_, _]] { type Out <: Bool }
+trait `AddQueen`[N <: Nat, X <: Nat, Config <: List]
+  { type Out <: List }
+trait `AddQueenToAll`[N <: Nat, X <: Nat, Configs <: List]
+  { type Out <: List }
+trait `AddQueensIf`[P <: Bool, N <: Nat, X <: Nat, Configs <: List]
+  { type Out <: List }
+trait `AddQueens`[N <: Nat, X <: Nat, Configs <: List]
+  { type Out <: List }
+trait `Solution`[N <: Nat] { type Out <: List }
+```
+
+---
+
+class: middle, center
 
 # Implicit resolution is a search process
 
@@ -245,7 +329,6 @@ apply instead of implicitly
 class: middle, center
 
 # -Xlog-implicits
-
 
 ---
 
@@ -279,14 +362,24 @@ class: middle, center
 
 # Diverging implicit expansion
 
-Let's imagine...
+```scala
+trait S
+trait V
+trait T[A]
+trait C[A, B]
 
+implicit def a0[A, B](implicit ta: T[A], tb: T[B]): T[C[A, B]] = ???
+implicit def a1(implicit a: T[C[V, C[V, V]]]): T[S] = ???
+implicit val a2: T[V] = ???
+
+implicitly[T[C[S, V]]]
+```
 --
 
 ```scala
 T[C[S, V]]
 T[S]
-T[C[V, C[V, V]]]
+T[C[V, C[V, V]]] // <- more complex
 ```
 
 --
@@ -296,47 +389,23 @@ T[C[V, C[V, V]]]
         for type d.this.T[d.this.C[d.this.S,d.this.V]]
 [error] starting with method a0 in class d
 [error]   implicitly[T[C[S, V]]]
-[error]             ^
-[error] one error found
-[error] (compile:compileIncremental) Compilation failed
 ```
 
 ---
-class: center, middle
 
-# What other typeclasses are required?
-
----
+# Shapeless to the rescue
 
 ```scala
-trait First[L <: List] { type Out }
-trait Concat[A <: List, B <: List] { type Out <: List }
-trait ConcatAll[Ls <: List] { type Out <: List }
-trait AnyTrue[L] { type Out <: Bool }
-trait Not[A <: Bool] { type Out <: Bool }
-trait Or[A <: Bool, B <: Bool] { type Out <: Bool }
-trait Eq[A <: Nat, B <: Nat] { type Out <: Bool }
-trait Lt[A <: Nat, B <: Nat] { type Out <: Bool }
-trait AbsDiff[A <: Nat, B <: Nat] { type Out <: Nat }
-trait Range[A <: Nat] { type Out <: List }
-trait Apply[F <: Func, A] { type Out }
-trait Map[F <: Func, L <: List] { type Out <: List }
-trait MapCat[F <: Func, L <: List] { type Out <: List }
-trait AppendIf[B <: Bool, A, L <: List] { type Out <: List }
-trait Filter[F <: Func, L <: List] { type Out <: List }
-trait QueensInRow[Y <: Nat, N <: Nat] { type Out <: List }
-trait Threatens[Q1 <: Queen[_, _], Q2 <: Queen[_, _]]
-  { type Out <: Bool }
-trait Safe[Config <: List, Q <: Queen[_, _]] { type Out <: Bool }
-trait AddQueen[N <: Nat, X <: Nat, Config <: List]
-  { type Out <: List }
-trait AddQueenToAll[N <: Nat, X <: Nat, Configs <: List]
-  { type Out <: List }
-trait AddQueensIf[P <: Bool, N <: Nat, X <: Nat, Configs <: List]
-  { type Out <: List }
-trait AddQueens[N <: Nat, X <: Nat, Configs <: List]
-  { type Out <: List }
-trait Solution[N <: Nat] { type Out <: List }
+trait S
+trait V
+trait T[A]
+trait C[A, B]
+
+implicit def a0[A, B](implicit ta: `shapeless.Lazy`[T[A]], tb: T[B]): T[C[A, B]] = ???
+implicit def a1(implicit a: T[C[V, C[V, V]]]): T[S] = ???
+implicit val a2: T[V] = ???
+
+implicitly[T[C[S, V]]]
 ```
 
 ---
@@ -344,7 +413,9 @@ trait Solution[N <: Nat] { type Out <: List }
 # What to do with all this
 
 - programming with dependent types
-- typeclass derivations
+--
+
+- typeclass derivations (Shapeless)
 
 ---
 
@@ -358,7 +429,6 @@ trait Solution[N <: Nat] { type Out <: List }
 
 - ["Typing the technical interview" by Kyle Kingsbury, a.k.a "Aphyr"](https://aphyr.com/posts/342-typing-the-technical-interview)
 --
-
 
 - [Slides](https://ilya-murzinov.github.io/slides/scalaspb/)
 --
