@@ -455,7 +455,11 @@ trait V
 trait T[A]
 trait C[A, B]
 
-implicit def a0[A, B](implicit ta: `shapeless.Lazy`[T[A]], tb: T[B]): T[C[A, B]] = ???
+implicit def a0[A, B](implicit
+  ta: `shapeless.Lazy`[T[A]],
+  tb: T[B]
+): T[C[A, B]] = ???
+
 implicit def a1(implicit a: T[C[V, C[V, V]]]): T[S] = ???
 implicit val a2: T[V] = ???
 
@@ -464,30 +468,101 @@ implicitly[T[C[S, V]]]
 
 ---
 
-# What to do with all this
+# How can we use all this?
 
 - for fun
+
 --
 
-- programming with dependent types
+- for typeclass derivation with Shapeless
+
 --
 
-- typeclass derivations (Shapeless)
+- ... and even encode dependent types in Scala
+
+---
+
+# Dependent types in Scala
+--
+
+```scala
+trait Sized[+A] {
+  type Size
+  def value: List[A]
+
+  def concat[B >: A](other: Sized[B])(implicit
+    `a: Add[Size, other.Size]`
+  ): Sized[B] { type Size = a.Out } = new Sized[B] {
+      type Size = `a.Out`
+      def value = `other.value ::: Sized.this.value`
+    }
+}
+```
+
+---
+
+# Dependent types in Scala
+
+```scala
+object SNil extends Sized[Nothing] {
+  type Size = _0
+  def value = Nil
+}
+```
+--
+
+```scala
+class SCons[+A](head: A, tail: Sized[A]) extends Sized[A] {
+  def value = head :: tail.value
+}
+object SCons {
+  type Aux[+A, S] = SCons[A] {type Size = S}
+  def apply[A](head: A, tail: Sized[A])(implicit
+    a: Add[tail.Size, _1]
+  ): Aux[A, a.Out] = new SCons[A](head, tail) {type Size = a.Out}
+}
+```
+
+---
+
+# Summary
+
+Scala type system/compiler is smart enough to do work for us.
+
+--
+
+Even as complex as solving N queens problem.
+
+--
+
+With discussed techniques and patterns we can encode such the logic quite easily.
+
+--
+
+And even readable to some extent.
+
+--
+
+But it's still very hard to debug.
 
 ---
 
 # References
 
 - ["The Type Astronaut's Guide to Shapeless" by Dave Gurnell](https://github.com/underscoreio/shapeless-guide)
+
 --
 
 - ["Hacking on scalac — 0 to PR in an hour" by Miles Sabin](https://milessabin.com/blog/2016/05/13/scalac-hacking/)
+
 --
 
 - ["Typing the technical interview" by Kyle Kingsbury, a.k.a "Aphyr"](https://aphyr.com/posts/342-typing-the-technical-interview)
+
 --
 
-- [Slides](https://ilya-murzinov.github.io/slides/scalaspb2017/)
+- [These slides](https://ilya-murzinov.github.io/slides/scalaspb2017/)
+
 --
 
 - [Solution of N queens problem on type level](https://scastie.scala-lang.org/ilya-murzinov/mNhJH6kdQFyfa59Vzs2OhA)
