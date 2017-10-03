@@ -468,7 +468,47 @@ implicitly[T[C[S, V]]]
 
 ---
 
+# The solution for 4x4
+
+```scala
+q.Solution[q.Succ[q.Succ[q.Succ[q.Succ[q.Z]]]]]{type Out = q.Cons[
+  q.Cons[`q.Queen[q.Succ[q.Succ[q.Succ[q.Z]]],q.Succ[q.Z]]`,
+    q.Cons[`q.Queen[q.Succ[q.Succ[q.Z]],q.Succ[q.Succ[q.Succ[q.Z]]]]`,
+      q.Cons[`q.Queen[q.Succ[q.Z],q.Z]`,
+        q.Cons[`q.Queen[q.Z,q.Succ[q.Succ[q.Z]]]`,q.Nil]
+      ]
+    ]
+  ],
+  q.Cons[
+    q.Cons[`q.Queen[q.Succ[q.Succ[q.Succ[q.Z]]],q.Succ[q.Succ[q.Z]]]`,
+      q.Cons[`q.Queen[q.Succ[q.Succ[q.Z]],q.Z]`,
+        q.Cons[`q.Queen[q.Succ[q.Z],q.Succ[q.Succ[q.Succ[q.Z]]]]`,
+          q.Cons[`q.Queen[q.Z,q.Succ[q.Z]]`,q.Nil]
+        ]
+      ]
+    ],
+    q.Nil
+  ]
+]}
+```
+
+---
+
+# The solution for 4x4
+
+```scala
+Queen[3, 1] :: Queen[2, 3] :: Queen[1, 0] :: Queen[0, 2] :: Nil
+
+Queen[3, 2] :: Queen[2, 0] :: Queen[1, 3] :: Queen[0, 1] :: Nil
+```
+--
+
+<img src="../../images/scalaspb2017/4queens.jpg" align="middle" height="350px" />
+
+---
+
 # How can we use all this?
+--
 
 - for fun
 
