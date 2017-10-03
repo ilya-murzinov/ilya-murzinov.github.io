@@ -18,7 +18,7 @@ class: middle, center
 
 class: middle, center
 
-# Revolut
+<img src="/images/scalaspb2017/Revolut_Logo.png"/>
 
 ---
 
@@ -61,12 +61,12 @@ Problem is to find ALL solutions for given N
 
 ---
 
-# Algorythm
+# Algorithm
 
-<img src="/images/scalaspb2017/nqueens-algorythm.gif" height="450px"/>
+<img src="/images/scalaspb2017/nqueens-algorithm.gif" height="450px"/>
 
 ???
-Algorythm - recursively for every queen in row check if it's safe,
+Algorithm - recursively for every queen in row check if it's safe,
 then add it and move to the next row
 
 ---
@@ -402,16 +402,17 @@ trait S
 trait V
 trait T[A]
 trait C[A, B]
+implicit def a0[A, B](implicit ta: `T[A]`, tb: `T[B]`): `T[C[A, B]]` = ???
 
-implicit def a0[A, B](implicit ta: T[A], tb: T[B]): T[C[A, B]] = ???
-implicit def a1(implicit a: T[C[V, C[V, V]]]): T[S] = ???
-implicit val a2: T[V] = ???
+implicit def a1(implicit a: `T[C[V, C[V, V]]]`): `T[S]` = ???
 
-implicitly[T[C[S, V]]]
+implicit val a2: `T[V]` = ???
 ```
 --
 
 ```scala
+implicitly[`T[C[S, V]]`]
+
 T[C[S, V]]
 T[S]
 T[C[V, C[V, V]]] // <- more complex
@@ -448,7 +449,47 @@ implicitly[T[C[S, V]]]
 
 ---
 
+# The solution for 4x4
+
+```scala
+q.Solution[q.Succ[q.Succ[q.Succ[q.Succ[q.Z]]]]]{type Out = q.Cons[
+  q.Cons[`q.Queen[q.Succ[q.Succ[q.Succ[q.Z]]],q.Succ[q.Z]]`,
+    q.Cons[`q.Queen[q.Succ[q.Succ[q.Z]],q.Succ[q.Succ[q.Succ[q.Z]]]]`,
+      q.Cons[`q.Queen[q.Succ[q.Z],q.Z]`,
+        q.Cons[`q.Queen[q.Z,q.Succ[q.Succ[q.Z]]]`,q.Nil]
+      ]
+    ]
+  ],
+  q.Cons[
+    q.Cons[`q.Queen[q.Succ[q.Succ[q.Succ[q.Z]]],q.Succ[q.Succ[q.Z]]]`,
+      q.Cons[`q.Queen[q.Succ[q.Succ[q.Z]],q.Z]`,
+        q.Cons[`q.Queen[q.Succ[q.Z],q.Succ[q.Succ[q.Succ[q.Z]]]]`,
+          q.Cons[`q.Queen[q.Z,q.Succ[q.Z]]`,q.Nil]
+        ]
+      ]
+    ],
+    q.Nil
+  ]
+]}
+```
+
+---
+
+# The solution for 4x4
+
+```scala
+Queen[_3, _1] :: Queen[_2, _3] :: Queen[_1, _0] :: Queen[_0, _2]
+
+Queen[_3, _2] :: Queen[_2, _0] :: Queen[_1, _3] :: Queen[_0, _1]
+```
+--
+
+<img src="/images/scalaspb2017/4queens.jpg" align="middle" height="350px"/>
+
+---
+
 # How can we use all this?
+--
 
 - for fun
 
@@ -545,7 +586,7 @@ But it's still very hard to debug.
 
 --
 
-- [Solution of N queens problem on type level](https://scastie.scala-lang.org/ilya-murzinov/mNhJH6kdQFyfa59Vzs2OhA)
+- [Solution of N queens problem on type level](https://github.com/ilya-murzinov/typelevel-computations-with-scala)
 
 ---
 
