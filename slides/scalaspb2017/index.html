@@ -427,16 +427,17 @@ trait S
 trait V
 trait T[A]
 trait C[A, B]
+implicit def a0[A, B](implicit ta: `T[A]`, tb: `T[B]`): `T[C[A, B]]` = ???
 
-implicit def a0[A, B](implicit ta: T[A], tb: T[B]): T[C[A, B]] = ???
-implicit def a1(implicit a: T[C[V, C[V, V]]]): T[S] = ???
-implicit val a2: T[V] = ???
+implicit def a1(implicit a: `T[C[V, C[V, V]]]`): `T[S]` = ???
 
-implicitly[T[C[S, V]]]
+implicit val a2: `T[V]` = ???
 ```
 --
 
 ```scala
+implicitly[`T[C[S, V]]`]
+
 T[C[S, V]]
 T[S]
 T[C[V, C[V, V]]] // <- more complex
