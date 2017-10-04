@@ -17,6 +17,11 @@
       a:visited { color: grey; }
       a:hover { color: grey; }
       a:active { color: grey; }
+
+      img {
+        display: block;
+        margin: auto;
+      }
     </style>
   </head>
   <body>
@@ -38,7 +43,7 @@ class: middle, center
 
 class: middle, center
 
-# Revolut
+<img src="../../images/scalaspb2017/Revolut_Logo.png" />
 
 ---
 
@@ -497,9 +502,9 @@ q.Solution[q.Succ[q.Succ[q.Succ[q.Succ[q.Z]]]]]{type Out = q.Cons[
 # The solution for 4x4
 
 ```scala
-Queen[3, 1] :: Queen[2, 3] :: Queen[1, 0] :: Queen[0, 2] :: Nil
+Queen[_3, _1] :: Queen[_2, _3] :: Queen[_1, _0] :: Queen[_0, _2]
 
-Queen[3, 2] :: Queen[2, 0] :: Queen[1, 3] :: Queen[0, 1] :: Nil
+Queen[_3, _2] :: Queen[_2, _0] :: Queen[_1, _3] :: Queen[_0, _1]
 ```
 --
 
