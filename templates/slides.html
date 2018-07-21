@@ -22,6 +22,43 @@
         display: block;
         margin: auto;
       }
+
+      .inverse {
+        background: #272822;
+        color: #f3f3f3;
+        text-shadow: 0 0 20px #333;
+      }
+      .inverse h1, .inverse h2 {
+        color: #f3f3f3;
+        line-height: 0.8em;
+      }
+
+      div.my-header {
+        font-family: 'Yanone Kaffeesatz';
+        font-size: 15pt;
+        position: fixed;
+        top: 10px;
+        left: 15px;
+        height: 30px;
+        width: 100%;
+        text-align: left;
+      }
+
+      div.my-footer {
+        position: absolute;
+        bottom: 0px;
+        left: 0px;
+        height: 20px;
+        width: 100%;
+      }
+
+      div.my-footer span {
+        font-family: 'Yanone Kaffeesatz';
+        font-size: 15pt;
+        position: absolute;
+        left: 15px;
+        bottom: 12px;
+      }
     </style>
   </head>
   <body>
@@ -30,6 +67,7 @@
 $body$
 
     </textarea>
+    
     <script src="https://remarkjs.com/downloads/remark-latest.min.js">
     </script>
     <script>

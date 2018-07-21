@@ -20,7 +20,7 @@ body {
 
 a {
     color: grey;
-    cursor: auto;
+    cursor: pointer;
     text-decoration: none;
     border-bottom: thin grey dotted;
 }
@@ -50,7 +50,7 @@ div#header #navigation {
 
 div#header #navigation a {
     color: black;
-    font-size: 1.2em;
+    font-size: 0.9em;
     font-weight: bold;
     margin-left: 12px;
     text-decoration: none;
