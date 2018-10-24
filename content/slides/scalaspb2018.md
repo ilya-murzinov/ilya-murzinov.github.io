@@ -1,8 +1,9 @@
 ---
 title: Monix in practice
 layout: true
-class: center, middle
 ---
+
+class: center, middle
 
 <img src="https://monix.io/public/images/monix-logo.png" width="100"/>
 
