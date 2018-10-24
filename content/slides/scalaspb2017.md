@@ -18,7 +18,7 @@ class: middle, center
 
 class: middle, center
 
-<img src="/images/scalaspb2017/Revolut_Logo.png"/>
+<img src="/images/Revolut_Logo.png"/>
 
 ---
 

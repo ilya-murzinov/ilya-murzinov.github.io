@@ -1,3 +1,4 @@
+---
 title: Monix in practice
 layout: true
 class: center, middle
@@ -24,7 +25,85 @@ layout: true
 
 class: middle, center
 
-<img src="/images/scalaspb2017/Revolut_Logo.png"/>
+<img src="/images/Revolut_Logo.png"/>
+
+---
+
+# Agenda
+
+### &rarr; Motivation
+- ### Discovering Monix API
+- ### Small example
+- ### Downsides
+
+---
+
+# Motivation
+
+---
+
+class: middle, center
+
+# Composability
+
+---
+
+# Motivation
+
+- ### Composability
+
+--
+- ### Local reasoning
+--
+
+- ### Readability
+--
+
+- ### Efficiency / performance
+
+---
+
+class: middle, center
+
+# <span style="color:red">Side-effects</span>
+
+---
+
+```scala
+class Counter {
+  private[this] var count: Int = 0
+
+  def inc(): Int = {
+    val res = count
+    count = count + 1
+    res
+  }
+}
+
+val counter = new Counter()
+```
+--
+
+```scala
+val count = `counter.inc()` + `counter.inc()`
+```
+--
+
+```scala
+val i = `counter.inc()`
+val count = i + i
+```
+
+---
+
+# Agenda
+
+- ### Motivation
+
+### &rarr; Discovering Monix API
+
+- ### Small example
+- ### Downsides
 
 ---
 
@@ -47,16 +126,10 @@ class: middle, center
 - #### `Scheduler`
 
 --
-- #### `Coeval`
-
---
 - #### `Observable`
 
 --
-- #### `Iterant`
-
---
-- #### `MVar`, `AsyncQueue`, `TaskCircutBreaker`, `TaskLocal`...
+- #### `Coeval`, `Iterant`, `MVar`, `AsyncQueue`, `TaskCircutBreaker`, `TaskLocal`...
 
 ---
 class: middle, center
@@ -64,7 +137,7 @@ class: middle, center
 # `Task[A]`
 
 ???
-Task is a data type for desribing computations
+Task is a data type for describing computations
 
 Task is a lazy Future
 
@@ -125,6 +198,7 @@ Task.race(task1, task2)
 val openFile = Task.eval(Source.fromFile("/home/monix/file.txt"))
 
 // acquire.bracket(use)(release)
+
 val task: Task[Iterator[String]] =
   openFile.bracket { f =>
     Task.eval(f.iter)
@@ -146,9 +220,92 @@ Scheduler extends ExecutionContext and adds more capabilities
 # Running a task
 
 ---
-class: middle, center
 
-# `Coeval`
+# Agenda
+
+- ### Motivation
+- ### Discovering Monix API
+
+### &rarr; Small example
+
+- ### Downsides
+
+---
+
+# Example
+
+<img src="/images/scalaspb2018/diagram.svg"/>
+
+---
+
+# Example
+
+```scala
+def clientSubscriber(clients: MVar[Clients]) =
+  Observable.repeat(())
+    .doOnSubscribe(() => println(s"Client subscriber started"))
+    .mapTask(_ => acceptClient)
+    .mapTask { case (id, s) =>
+      for {
+        map <- clients.take
+        _ <- clients.put(map + (id -> s))
+      } yield ()
+    }
+    .completedL
+```
+
+---
+
+# Example
+
+```scala
+def eventSourceProcessor(clients: MVar[Clients]) =
+  Observable.repeat(())
+    .doOnSubscribe(() => println(s"Event processor started"))
+    .mapTask(_ => acceptEventSource)
+    .flatMap(it =>
+      Observable.fromIterator(it)
+        .map(parse)
+        .scanTask(Task.pure(initialState)) {
+          case (state, event) =>
+            for {
+              map <- clients.take
+              state <- handler.handle(event, state, map)
+              _ <- clients.put(map)
+            } yield state
+        })
+    .completedL
+```
+
+---
+
+# Example
+
+```scala
+for {
+  clients <- MVar(Map[ClientId, Socket]())
+  c = clientSubscriber(clients).executeOn(clientScheduler)
+  e = eventSourceProcessor(clients).executeOn(eventSourceScheduler)
+  _ <- Task.gatherUnordered(Seq(c, e))
+} yield ()
+```
+
+---
+
+# Agenda
+
+- ### Motivation
+- ### Discovering Monix API
+- ### Small example
+
+### &rarr; Downsides
+
+---
+
+# Downsides
+--
+
+- ### `Task` is too powerful
 
 ---
 
