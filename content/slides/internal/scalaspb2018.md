@@ -282,6 +282,7 @@ Task.eval(println(42))
 // suspends evaluation + makes it asyncronous
 Task.eval(println(42)).executeAsync
 Task(println(42))
+Task.eval(println(42)).executeOn(io)
 
 // suspends effects of creating another Task
 Task.defer(createSomeTask())
@@ -345,7 +346,6 @@ val extract3: Task[Seq[String]] = ???
 val extract =
   Task.parMap3(extract1, extract2, extract3)(_ :+ _ :+ _)
 ```
---
 
 ---
 # Composing tasks
@@ -372,6 +372,18 @@ Task.raceMany(tasks)
 # Task cancellation
 
 ```scala
+val task = ???
+
+val f: CancelableFuture[Unit] = t.runAsync
+
+f.cancel()
+```
+
+---
+
+# Task cancellation
+
+```scala
 import monix.execution.Scheduler.Implicits.global
 
 // val sleep = Task.sleep(1.second) <- Doesn't work
@@ -379,9 +391,7 @@ val sleep = Task(Thread.sleep(100))
 
 val t = sleep.flatMap(_ => Task.eval(println(42)))
 
-val f: CancelableFuture[Unit] = t.runAsync
-
-f.cancel()
+t.runAsync.cancel()
 
 Thread.sleep(1000)
 ```
@@ -401,9 +411,7 @@ val sleep = Task(Thread.sleep(100))`.cancelable`
 
 val t = sleep.flatMap(_ => Task.eval(println(42)))
 
-val f: CancelableFuture[Unit] = t.runAsync
-
-f.cancel()
+val f: CancelableFuture[Unit] = t.runAsync.cancel()
 
 Thread.sleep(1000)
 ```
@@ -421,12 +429,16 @@ val sleep = Task(Thread.sleep(100))
 
 val t = sleep.flatMap(_ => Task.eval(println(42)))
 
-val f: CancelableFuture[Unit] = t.runAsync
-
-f.cancel()
+t.runAsync.cancel()
 
 Thread.sleep(1000)
 ```
+
+---
+
+class: middle, center
+
+# Observable[A]
 
 ---
 
@@ -497,6 +509,8 @@ for {
 - [Monix vs Cats-Effect](https://monix.io/blog/2018/03/20/monix-vs-cats-effect.html)
 
 - [Scalaz 8 IO vs Akka (typed) actors vs Monix @ SoftwareMill](https://blog.softwaremill.com/scalaz-8-io-vs-akka-typed-actors-vs-monix-part-1-5672657169e1)
+
+- [Solution of the example (https://github.com/ilya-murzinov/seuraajaa)](https://github.com/ilya-murzinov/seuraajaa)
 
 ---
 
