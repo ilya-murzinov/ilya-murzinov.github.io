@@ -12,7 +12,7 @@ class: middle, center
 
 [https://github.com/ilya-murzinov](https://github.com/ilya-murzinov)
 
-.bottom[[https://ilya-murzinov.github.io/slides/scalaspb2017](https://ilya-murzinov.github.io/slides/scalaspb2017)]
+.bottom[[https://ilya-murzinov.github.io/slides/scalaspb2017](https://ilya-murzinov.github.io/slides/scalaspb2017.pdf)]
 
 ---
 
