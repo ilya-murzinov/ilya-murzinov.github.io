@@ -7,6 +7,21 @@
       @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
       @import url(https://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic);
 
+      @page {
+        size: 1210px 681px;
+        margin: 0;
+      }
+
+      @media print {
+        .remark-slide-scaler {
+          width: 100% !important;
+          height: 100% !important;
+          transform: scale(1) !important;
+          top: 0 !important;
+          left: 0 !important;
+        }
+      }
+
       body { font-family: 'Droid Serif'; }
       h1, h2, h3 {
         font-family: 'Yanone Kaffeesatz';
@@ -74,13 +89,13 @@ class: middle, center
 
 [https://github.com/ilya-murzinov](https://github.com/ilya-murzinov)
 
-.bottom[[https://ilya-murzinov.github.io/slides/scalaspb2017](https://ilya-murzinov.github.io/slides/scalaspb2017)]
+.bottom[[https://ilya-murzinov.github.io/slides/scalaspb2017](https://ilya-murzinov.github.io/slides/scalaspb2017.pdf)]
 
 ---
 
 class: middle, center
 
-<img src="../../images/Revolut_Logo.png" />
+<img src="../../../images/Revolut.png" style="max-width:100%;" />
 
 ---
 
@@ -101,7 +116,7 @@ how far we go with it
 
 # We can do amazing things in Haskell
 
-<img src="../../images/scalaspb2017/typing-the-technical-interview.png" height="400px" />
+<img src="../../../images/scalaspb2017/typing-the-technical-interview.png" height="400px" />
 
 ???
 Staring with Haskell is never good, but I'll try to keep it simple
@@ -116,7 +131,7 @@ Distributed system correctness
 
 # N queens problem
 
-<img src="../../images/scalaspb2017/nqueens.jpg" height="450px" />
+<img src="../../../images/scalaspb2017/nqueens.jpg" height="450px" />
 
 ???
 Problem is to find ALL solutions for given N
@@ -125,7 +140,7 @@ Problem is to find ALL solutions for given N
 
 # Algorithm
 
-<img src="../../images/scalaspb2017/nqueens-algorithm.gif" height="450px" />
+<img src="../../../images/scalaspb2017/nqueens-algorithm.gif" height="450px" />
 
 ???
 Algorithm - recursively for every queen in row check if it's safe,
@@ -445,7 +460,7 @@ class: middle, center
 
 # Diverging implicit expansion
 
-<img src="../../images/scalaspb2017/spiewak.png" height="250px" />
+<img src="../../../images/scalaspb2017/spiewak.png" height="250px" />
 --
 
 &nbsp;
@@ -546,7 +561,7 @@ Queen[_3, _2] :: Queen[_2, _0] :: Queen[_1, _3] :: Queen[_0, _1]
 ```
 --
 
-<img src="../../images/scalaspb2017/4queens.jpg" align="middle" height="350px" />
+<img src="../../../images/scalaspb2017/4queens.jpg" align="middle" height="350px" />
 
 ---
 
