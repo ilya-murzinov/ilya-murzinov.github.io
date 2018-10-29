@@ -252,6 +252,12 @@ SynchronousExecution - всегда запускает таски на том ж
 
 # Scheduler
 
+```scala 
+Scheduler.computation(name = "my-computation")
+
+Scheduler.io(name = "my-io")
+```
+
 ???
 computation под капотом имеет ForkJoinPool и предназначен в основном для CPU-bound вычислений.
 
@@ -259,15 +265,6 @@ computation под капотом имеет ForkJoinPool и предназна�
 
 Давайте наконец-то посмотрим, как создавать таск. После всего, что я рассказал, это должно быть совсем
 понятно.
---
-
-- `Scheduler.computation(name = "my-computation")`
-
---
-
-- `Scheduler.io(name = "my-io")`
-
---
 
 ---
 # Creating a task
@@ -291,8 +288,9 @@ Task.defer(createSomeTask())
 ```
 
 ???
-executeAsync форсирует асинхронное выполнение таска, он неявно принимает в качестве аргумента Scheduler, позволяя
-запустить таск на другом тред-пуле.
+executeAsync форсирует асинхронное выполнение таска
+есть ещё метод executeOn, он принимает в качестве аргумента Scheduler, позволяя запустить таск
+на другом тред-пуле.
 
 ---
 
@@ -372,6 +370,63 @@ Task.raceMany(tasks)
 ---
 
 # Task cancellation
+
+```scala
+import monix.execution.Scheduler.Implicits.global
+
+// val sleep = Task.sleep(1.second) <- Doesn't work
+val sleep = Task(Thread.sleep(100))
+
+val t = sleep.flatMap(_ => Task.eval(println(42)))
+
+val f: CancelableFuture[Unit] = t.runAsync
+
+f.cancel()
+
+Thread.sleep(1000)
+```
+
+???
+runAsync возвращает не просто Future, а CancellableFuture, это та же Future, но у неё есть метод cancel.
+
+---
+
+# Task cancellation
+
+```scala
+import monix.execution.Scheduler.Implicits.global
+
+// val sleep = Task.sleep(1.second) <- Doesn't work
+val sleep = Task(Thread.sleep(100))`.cancelable`
+
+val t = sleep.flatMap(_ => Task.eval(println(42)))
+
+val f: CancelableFuture[Unit] = t.runAsync
+
+f.cancel()
+
+Thread.sleep(1000)
+```
+
+---
+
+# Task cancellation
+
+```scala
+import monix.execution.Scheduler.Implicits.global
+
+// val sleep = Task.sleep(1.second) <- Doesn't work
+val sleep = Task(Thread.sleep(100))
+  `.flatMap(_ => Task(Thread.sleep(100))).cancelable`
+
+val t = sleep.flatMap(_ => Task.eval(println(42)))
+
+val f: CancelableFuture[Unit] = t.runAsync
+
+f.cancel()
+
+Thread.sleep(1000)
+```
 
 ---
 
