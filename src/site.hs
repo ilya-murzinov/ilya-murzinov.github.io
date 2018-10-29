@@ -22,7 +22,7 @@ siteConf = SiteConfiguration {
 
 main :: IO ()
 main = hakyll $ do
-    match ("images/**" .||. "content/certificates/*" .||. "fonts/*" .||. "js/*") $ do
+    match ("images/**" .||. "content/certificates/*" .||. "fonts/*" .||. "js/*" .||. "content/slides/*.pdf") $ do
         route $ stripContent `composeRoutes` idRoute
         compile copyFileCompiler
 
@@ -30,7 +30,7 @@ main = hakyll $ do
         route   idRoute
         compile compressCssCompiler
 
-    match "content/slides/*" $ do
+    match "content/slides/internal/*" $ do
         route $ stripContent `composeRoutes` customRoute indexRoute
         compile $ getResourceBody
             >>= loadAndApplyTemplate "templates/slides.html" defaultContext
