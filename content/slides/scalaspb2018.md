@@ -26,85 +26,7 @@ layout: true
 
 class: middle, center
 
-<img src="/images/Revolut_Logo.png"/>
-
----
-
-# Agenda
-
-### &rarr; Motivation
-- ### Discovering Monix API
-- ### Small example
-- ### Downsides
-
----
-
-# Motivation
-
----
-
-class: middle, center
-
-# Composability
-
----
-
-# Motivation
-
-- ### Composability
-
---
-- ### Local reasoning
---
-
-- ### Readability
---
-
-- ### Efficiency / performance
-
----
-
-class: middle, center
-
-# <span style="color:red">Side-effects</span>
-
----
-
-```scala
-class Counter {
-  private[this] var count: Int = 0
-
-  def inc(): Int = {
-    val res = count
-    count = count + 1
-    res
-  }
-}
-
-val counter = new Counter()
-```
---
-
-```scala
-val count = `counter.inc()` + `counter.inc()`
-```
---
-
-```scala
-val i = `counter.inc()`
-val count = i + i
-```
-
----
-
-# Agenda
-
-- ### Motivation
-
-### &rarr; Discovering Monix API
-
-- ### Small example
-- ### Downsides
+<img src="/images/Revolut.png" style="max-width:100%;"/>
 
 ---
 
@@ -121,16 +43,16 @@ val count = i + i
 # Core components
 
 --
-- #### `Task`
+- ### `Task`
 
 --
-- #### `Scheduler`
+- ### `Scheduler`
 
 --
-- #### `Observable`
+- ### `Observable`
 
 --
-- #### `Coeval`, `Iterant`, `MVar`, `AsyncQueue`, `TaskCircutBreaker`, `TaskLocal`...
+- ### `Coeval`, `Iterant`, `MVar`, `AsyncQueue`, `TaskCircutBreaker`, `TaskLocal`...
 
 ---
 class: middle, center

@@ -18,7 +18,7 @@ class: middle, center
 
 class: middle, center
 
-<img src="/images/Revolut_Logo.png"/>
+<img src="/images/Revolut.png" style="max-width:100%;"/>
 
 ---
 
