@@ -141,6 +141,10 @@ class: middle, center
 оверхеду из-за переключения контекста, хотя в некоторых случаях этого можно было бы избежать.
 --
 
+- Not stack-safe
+
+--
+
 `monix.Task`:
 
 - Lazy (ref. transparent)
@@ -164,6 +168,9 @@ class: middle, center
 Таск не всегда запускается на другом логическом потоке и позволяет очень точно контролировать своё
 выполнение, например, выполнять часть задач на отдельном тред-пуле, либо форсировать переключение на
 другой логический поток.
+--
+
+- Stack (and heap) safe
 
 ---
 
@@ -191,7 +198,7 @@ class: middle, center
 
 # Scheduler
 
-```scala 
+```scala
 Scheduler.computation(name = "my-computation")
 
 Scheduler.io(name = "my-io")
@@ -202,8 +209,12 @@ computation под капотом имеет ForkJoinPool и предназна�
 
 у io под капотом unbounded CachedThreadPool.
 
-Давайте наконец-то посмотрим, как создавать таск. После всего, что я рассказал, это должно быть совсем
-понятно.
+--
+```scala
+Scheduler.fixedPool("my-fixed-pool", 10)
+
+Scheduler.singleThread("my-single-thread")
+```
 
 ---
 # Creating a task
@@ -218,7 +229,7 @@ Task.now(println(42))
 // suspends argument evaluation
 Task.eval(println(42))
 
-// suspends evaluation + makes it asyncronous
+// suspends evaluation + makes it asynchronous
 Task(println(42))
 
 ...
@@ -385,7 +396,7 @@ Observable - это Iterable, который может обрабатывать
 
 - Allows fine-grained control over execution
 
-- Models single producer - multiple consumer communication
+- Models single producer - multiple consumers communication
 
 ---
 
@@ -395,11 +406,13 @@ Observable - это Iterable, который может обрабатывать
 
 - Simpler API
 
-- No dependency on actor framework
+- Lighter (no dependency on actor framework)
 
 - Better execution control
 
 - Easier to understand internals
+
+- Faster
 
 ---
 
@@ -454,19 +467,22 @@ MonixBenchmark.monixMerge  thrpt   10  `531.182 ± 37.332`  ops/s
 # Example
 
 ```scala
-val acceptClient: Task[Option[(Long, Socket)]] = ???
+val acceptClient: Task[(Long, Data)] = ???
 
-def clientSubscriber(clients: MVar[Clients]) =
+def handleClientJoin(id: Long, data: Data, state: State): Task[State] = ???
+
+def clientSubscriber(`mState: MVar[State]`) =
   Observable.repeat(())
     .doOnSubscribe(() => println(s"Client subscriber started"))
     .mapTask(_ => `acceptClient`)
     .mapTask { case (id, s) =>
       for {
-        map <- `clients.take`
-        _ <- `clients.put(map + (id -> s))`
+        state <- `mState.take`
+        newState <- `handleClientJoin(id, s, state)`
+        _ <- `mState.put(newState)`
       } yield ()
     }
-    .completedL
+    `.completedL`
 ```
 
 ---
@@ -474,27 +490,21 @@ def clientSubscriber(clients: MVar[Clients]) =
 # Example
 
 ```scala
-val acceptEventSource: Task[Option[Iterator[String]]] = ???
+val acceptEventSource: Task[Iterator[Event]] = ???
 
-def handle(event: Event, state: State,
-           clients: Clients): Task[State]
+def handleEvent(event: Event, state: State): Task[State]
 
-def eventSourceProcessor(clients: MVar[Clients]) =
+def eventSourceProcessor(mState: MVar[State]) =
   Observable.repeat(())
     .doOnSubscribe(() => println(s"Event processor started"))
     .mapTask(_ => `acceptEventSource`)
-    .flatMap(it =>
-      Observable.fromIterator(it)
-        .map(parse)
-        `.scanTask`(Task.pure(initialState)) {
-          case (state, event) =>
-            for {
-              map <- `clients.take`
-              state <- `handle`(event, state, map)
-              _ <- `clients.put(map)`
-            } yield state
-        })
-    .completedL
+    .flatMap(it => Observable.fromIterator(it)
+      .mapTask(e => for {
+        state <- mState.take
+        newState <- `handleEvent(e, state)`
+        _ <- mState.put(newState)
+      } yield ()))
+    `.headL`
 ```
 
 ---
@@ -503,9 +513,9 @@ def eventSourceProcessor(clients: MVar[Clients]) =
 
 ```scala
 for {
-  clients <- MVar(Map[ClientId, Socket]())
-  c = clientSubscriber(clients).`executeOn(clientScheduler)`
-  e = eventSourceProcessor(clients).`executeOn(eventSourceScheduler)`
+  initialState <- MVar(State())
+  c = clientSubscriber(initialState).`executeOn(clientScheduler)`
+  e = eventSourceProcessor(initialState).`executeOn(eventSourceScheduler)`
   _ <- Task.gatherUnordered(Seq(c, e))
 } yield ()
 ```
