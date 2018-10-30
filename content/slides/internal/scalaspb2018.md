@@ -15,12 +15,7 @@ class: center, middle
 
 [https://github.com/ilya-murzinov](https://github.com/ilya-murzinov)
 
-Slides: [https://ilya-murzinov.github.io/slides/scalaspb2018](https://ilya-murzinov.github.io/slides/scalaspb2018.pdf)
-
-???
-Всем привет, меня зовут Илья, я бэкенд-разработчик в компании Револют.
-Я хочу рассказать про библиотеку Моникс для функционального и реактивного программирования.
-В конце доклада за лучшие вопросы я подарю вот такую классную толстовку.
+Slides: [https://ilya-murzinov.github.io/slides/scalaspb2018.pdf](https://ilya-murzinov.github.io/slides/scalaspb2018.pdf)
 
 ---
 
@@ -64,15 +59,6 @@ class: middle, center
 def goodFunction() = 2 + 2
 ```
 
-???
-Например, в ЭТОМ ПРИМЕРЕ goodFunction - ссылочно прозрачная, она всегда возвращает 4, и любой
-её вызов можно заменить просто на 4.
-
-А вот с badFunction такой фокус не пройдёт, несмотря на то, что она тоже всегда возвращает 4,
-потому что кроме этого она ещё посылает куда-то какое-то сообщение.
-
-Этот пример, конечено, утрированный, но мысль ясна.
-
 --
 
 ```scala
@@ -83,12 +69,11 @@ def badFunction() = {
 ```
 
 ???
-Функциональный стиль написания кода даёт много преимуществ, главным из которых для меня, как для
-разработчика, является возможность не думать про контекст выполнения функции а так же возможность
-рефакторить код не опасаясь, что я что-то сломаю.
+Функциональный стиль написания кода даёт много преимуществ
 
-Давайте перейдём непосредственно к обзору Моникса и посмотрим какие абстракции он предлагает и как с
-ними работать.
+не думать про контекст выполнения функции
+
+рефакторить код не опасаясь, что я что-то сломаю.
 
 ---
 class: middle, center
@@ -98,12 +83,9 @@ class: middle, center
 # Monix
 
 ???
-Как я уже сказал, Моникс - это библиотека для функционального и реактивного программирования. Но на
-самом деле это аж 4 небольшие библиотечки, у каждой из которых своя функция.
+Как я уже сказал, Моникс - это библиотека для функционального и реактивного программирования.
 
-Это полезно, чтобы добавлять в проект только те зависимости, которые необходимы.
-
-Пройдёмся по каждой библиотечке и посмотрим, что она содержит.
+Но на самом деле это аж 4 небольшие библиотечки, у каждой из которых своя функция.
 
 ---
 
@@ -116,19 +98,6 @@ class: middle, center
 - `monix-tail` - Iterant (pull-based streaming)
 
 - `monix-execution` - Scheduler & bunch of performance hacks
-
-???
-monix-eval - основная библиотека для описания вычислений. Предоставляет такие абстракции как Task,
-Coeval, MVar
-
-monix-reactive - Observable, Observer (push-based stream)
-
-monix-tail - Iterant (pull-based stream)
-
-monix-execution - содержит Scheduler и кучу классов внутреннего АПИ (например
-свои атомики). Предназначен для выполнения описанных вычислений. От этого модуля зависят все остальные.
-
-Сорцы этого модуля очень интересно читать, можно много подсмотреть про перформанс оптимизации.
 
 ---
 class: middle, center
@@ -196,9 +165,6 @@ class: middle, center
 выполнение, например, выполнять часть задач на отдельном тред-пуле, либо форсировать переключение на
 другой логический поток.
 
-Хочу перейти к примерам, но придётся сначала поговорить про Scheduler, потому что без него таск не
-запустить. Scheduler - это ExecutionContext с дополнительными возможностями.
-
 ---
 
 # Scheduler
@@ -211,19 +177,6 @@ class: middle, center
 
 - Use different execution models
 
-???
-Scheduler - это ExecutionContext с дополнительными возможностями.
-
-Он умеет:
-
-- Запускать отложенную задачу
-- Запускать задачу периодически
-- Предоставлять текущее время
-- Предоставлять cancellation token для отмены запланированной задачи
-- Использовать разные модели выполнения
-
-С первыми 4 пунктами всё должно быть понятно, про последний поясню.
-
 ---
 
 # ExecutionModel
@@ -233,20 +186,6 @@ Scheduler - это ExecutionContext с дополнительными возмо
 - `SynchronousExecution`
 
 - `BatchedExecution`
-
-???
-В Моникс существуют 3 модели выполнения задач - AlwaysAsyncExecution,
-SynchronousExecution и BatchedExecution.
-
-AlwaysAsyncExecution - модель выполнения, которая соответстует аналогична Future, то есть всегда
-форкает тред.
-
-SynchronousExecution - всегда запускает таски на том же потоке, если явно не указано обратное.
-
-По дефолту используется последняя модель выполнения, то есть BatchedExecution, которая запускает таски
-на одном потоке батчами определённого размера, после чего шифтится на другой поток.
-
-Вернёмся к скедулеру и посмотрим, какие они бывают и для чего.
 
 ---
 
@@ -280,18 +219,32 @@ Task.now(println(42))
 Task.eval(println(42))
 
 // suspends evaluation + makes it asyncronous
-Task.eval(println(42)).executeAsync
 Task(println(42))
-Task.eval(println(42)).executeOn(io)
 
-// suspends effects of creating another Task
-Task.defer(createSomeTask())
+...
+
+Task.evalOnce(...)
+Task.defer(...)
+Task.deferFuture(...)
+Task.deferFutureAction(...)
+
+...
+
 ```
 
-???
-executeAsync форсирует асинхронное выполнение таска
-есть ещё метод executeOn, он принимает в качестве аргумента Scheduler, позволяя запустить таск
-на другом тред-пуле.
+---
+
+# Thread shifting
+
+```scala
+val t = Task.eval(println(42))
+
+t.executeAsync
+
+t.executeOn(io)
+
+t.asyncBoundary(io)
+```
 
 ---
 
@@ -386,7 +339,6 @@ f.cancel()
 ```scala
 import monix.execution.Scheduler.Implicits.global
 
-// val sleep = Task.sleep(1.second) <- Doesn't work
 val sleep = Task(Thread.sleep(100))
 
 val t = sleep.flatMap(_ => Task.eval(println(42)))
@@ -396,9 +348,6 @@ t.runAsync.cancel()
 Thread.sleep(1000)
 ```
 
-???
-runAsync возвращает не просто Future, а CancellableFuture, это та же Future, но у неё есть метод cancel.
-
 ---
 
 # Task cancellation
@@ -406,28 +355,9 @@ runAsync возвращает не просто Future, а CancellableFuture, э
 ```scala
 import monix.execution.Scheduler.Implicits.global
 
-// val sleep = Task.sleep(1.second) <- Doesn't work
 val sleep = Task(Thread.sleep(100))`.cancelable`
 
-val t = sleep.flatMap(_ => Task.eval(println(42)))
-
-val f: CancelableFuture[Unit] = t.runAsync.cancel()
-
-Thread.sleep(1000)
-```
-
----
-
-# Task cancellation
-
-```scala
-import monix.execution.Scheduler.Implicits.global
-
-// val sleep = Task.sleep(1.second) <- Doesn't work
-val sleep = Task(Thread.sleep(100))
-  `.flatMap(_ => Task(Thread.sleep(100))).cancelable`
-
-val t = sleep.flatMap(_ => Task.eval(println(42)))
+val t = sleep.`flatMap(_ => Task.eval(println(42)))`
 
 t.runAsync.cancel()
 
@@ -440,6 +370,79 @@ class: middle, center
 
 # Observable[A]
 
+???
+Observable - это Iterable, который может обрабатывать элементы асинхронно.
+
+---
+
+# Observable[A]
+
+- Lazy (ref. transparent)
+
+- Cancellable
+
+- Safe (doesn't expose unsafe or blocking operations)
+
+- Allows fine-grained control over execution
+
+- Models single producer - multiple consumer communication
+
+---
+
+# Monix vs Akka streams
+
+`Monix` has
+
+- Simpler API
+
+- No dependency on actor framework
+
+- Better execution control
+
+- Easier to understand internals
+
+---
+
+# Performance
+
+```scala
+private[this] val list = 1 to 100
+
+@Benchmark
+def monixMerge: Int = {
+  val observables = list
+    .map(_ => Observable.fromIterable(list).executeAsync)
+
+  Observable
+    .merge(observables: _*)(OverflowStrategy.BackPressure(10))
+    .foldL
+    .runSyncUnsafe(1.seconds)
+}
+
+@Benchmark
+def akkaMerge: Int = {
+  val source: Source[Int, NotUsed] = Source(list)
+  val f = list
+    .map(_ => source)
+    .fold(Source.empty)(_.merge(_))
+    .runWith(Sink.fold(0)(_ + _))
+
+  Await.result(f, 1.second)
+}
+```
+
+---
+
+# Performance
+
+```
+# Run complete. Total time: 00:06:45
+Do not assume the numbers tell you what you want them to tell.
+Benchmark                   Mode  Cnt    Score    Error  Units
+MonixBenchmark.akkaMerge   thrpt   10   `46.207 ±  0.849`  ops/s
+MonixBenchmark.monixMerge  thrpt   10  `531.182 ± 37.332`  ops/s
+```
+
 ---
 
 # Example
@@ -451,14 +454,16 @@ class: middle, center
 # Example
 
 ```scala
+val acceptClient: Task[Option[(Long, Socket)]] = ???
+
 def clientSubscriber(clients: MVar[Clients]) =
   Observable.repeat(())
     .doOnSubscribe(() => println(s"Client subscriber started"))
-    .mapTask(_ => acceptClient)
+    .mapTask(_ => `acceptClient`)
     .mapTask { case (id, s) =>
       for {
-        map <- clients.take
-        _ <- clients.put(map + (id -> s))
+        map <- `clients.take`
+        _ <- `clients.put(map + (id -> s))`
       } yield ()
     }
     .completedL
@@ -469,19 +474,24 @@ def clientSubscriber(clients: MVar[Clients]) =
 # Example
 
 ```scala
+val acceptEventSource: Task[Option[Iterator[String]]] = ???
+
+def handle(event: Event, state: State,
+           clients: Clients): Task[State]
+
 def eventSourceProcessor(clients: MVar[Clients]) =
   Observable.repeat(())
     .doOnSubscribe(() => println(s"Event processor started"))
-    .mapTask(_ => acceptEventSource)
+    .mapTask(_ => `acceptEventSource`)
     .flatMap(it =>
       Observable.fromIterator(it)
         .map(parse)
-        .scanTask(Task.pure(initialState)) {
+        `.scanTask`(Task.pure(initialState)) {
           case (state, event) =>
             for {
-              map <- clients.take
-              state <- handler.handle(event, state, map)
-              _ <- clients.put(map)
+              map <- `clients.take`
+              state <- `handle`(event, state, map)
+              _ <- `clients.put(map)`
             } yield state
         })
     .completedL
@@ -494,8 +504,8 @@ def eventSourceProcessor(clients: MVar[Clients]) =
 ```scala
 for {
   clients <- MVar(Map[ClientId, Socket]())
-  c = clientSubscriber(clients).executeOn(clientScheduler)
-  e = eventSourceProcessor(clients).executeOn(eventSourceScheduler)
+  c = clientSubscriber(clients).`executeOn(clientScheduler)`
+  e = eventSourceProcessor(clients).`executeOn(eventSourceScheduler)`
   _ <- Task.gatherUnordered(Seq(c, e))
 } yield ()
 ```
