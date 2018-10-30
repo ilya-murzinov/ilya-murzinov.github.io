@@ -342,6 +342,16 @@ val f: CancelableFuture[Unit] = t.runAsync
 
 f.cancel()
 ```
+--
+
+```scala
+Task { Thread.sleep(100); println(42) }
+  .doOnCancel(Task.eval(println("On cancel")))
+  .runAsync
+  .cancel()
+
+Thread.sleep(1000)
+```
 
 ---
 
@@ -382,7 +392,11 @@ class: middle, center
 # Observable[A]
 
 ???
-Observable - это Iterable, который может обрабатывать элементы асинхронно.
+Observable - это структура данных для описания асинхронной обработки потока данных.
+
+Observable можно представлять как Iterable, который может обрабатывать элементы асинхронно.
+
+Давайте посмотрим, какими свойствами обладает Observable
 
 ---
 
@@ -390,13 +404,41 @@ Observable - это Iterable, который может обрабатывать
 
 - Lazy (ref. transparent)
 
+--
+
 - Cancellable
+
+--
 
 - Safe (doesn't expose unsafe or blocking operations)
 
+--
+
 - Allows fine-grained control over execution
 
+--
+
 - Models single producer - multiple consumers communication
+
+--
+
+- Non-blocking back-pressure
+
+
+???
+У Obserable отличная интеграция с Task, то есть таски можно использовать для описания
+обработки элементов.
+
+Observable - это высокоуровневая абстракция, это значит, что для работы с ним почти
+никогда не нужно задумываться про примитивы типа Observer, обычно Observable можно
+легко превратить в таск и уже таск запустить.
+
+В Мониксе есть холодные и горячие Observable, первые могу иметь только 1 подписчика,
+вторые - несколько. Это позволяет строить сложные флоу по типу Akka Graph DSL.
+
+Раз уж заговорили про акка стримы, давайте я расскажу, почему Моникс лучше.
+
+Разумеется, с моей точки зрения.
 
 ---
 
@@ -413,6 +455,12 @@ Observable - это Iterable, который может обрабатывать
 - Easier to understand internals
 
 - Faster
+
+???
+Моникс очень хорошо справляется с задачами, где нужно мёржить много стримов и запускать много
+разных асинхронных задач
+
+По поводу перформанса у меня есть небольшой бенчмарк.
 
 ---
 
@@ -469,7 +517,8 @@ MonixBenchmark.monixMerge  thrpt   10  `531.182 ± 37.332`  ops/s
 ```scala
 val acceptClient: Task[(Long, Data)] = ???
 
-def handleClientJoin(id: Long, data: Data, state: State): Task[State] = ???
+def handleClientJoin(id: Long, data: Data,
+                     state: State): Task[State] = ???
 
 def clientSubscriber(`mState: MVar[State]`) =
   Observable.repeat(())
@@ -512,10 +561,13 @@ def eventSourceProcessor(mState: MVar[State]) =
 # Example
 
 ```scala
+val io = Scheduler.io()
+val computation = Scheduler.computation()
+
 for {
   initialState <- MVar(State())
-  c = clientSubscriber(initialState).`executeOn(clientScheduler)`
-  e = eventSourceProcessor(initialState).`executeOn(eventSourceScheduler)`
+  c = clientSubscriber(initialState).`executeOn(io)`
+  e = eventSourceProcessor(initialState).`executeOn(computation)`
   _ <- Task.gatherUnordered(Seq(c, e))
 } yield ()
 ```
