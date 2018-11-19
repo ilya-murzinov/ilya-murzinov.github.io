@@ -19,14 +19,14 @@ class: center, middle
 
 ---
 
-layout: true
-<div class="my-footer"><span>Monix in practice - Ilya Murzinov, slides: <a href="slides/devfest-siberia-2018.pdf">https://ilya-murzinov.github.io/slides/devfest-siberia-2018.pdf</a></span></div>
-
----
-
 class: middle, center
 
 <img src="/images/Revolut.png" style="max-width:100%;"/>
+
+---
+
+layout: true
+<div class="my-footer"><span>Monix in practice - Ilya Murzinov, slides: <a href="slides/devfest-siberia-2018.pdf">$root$/slides/devfest-siberia-2018.pdf</a></span></div>
 
 ---
 
@@ -233,13 +233,13 @@ import monix.execution.Scheduler.Implicits.global
 lazy val io = Scheduler.io(name = "my-io")
 
 val source = Task.eval(println(
-  s"Running on thread: ${Thread.currentThread.getName}"))
+  s"Running on thread: $${Thread.currentThread.getName}"))
 
 val async = source.`executeAsync`
 val forked = source.`executeOn(io)`
 
 val onFinish = Task.eval(println(
-  s"Ends on thread: ${Thread.currentThread.getName}"))
+  s"Ends on thread: $${Thread.currentThread.getName}"))
 
 source // executes on main
   .flatMap(_ => source) // executes on main

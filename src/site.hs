@@ -34,6 +34,7 @@ main = hakyll $ do
     route $ stripContent `composeRoutes` customRoute indexRoute
     compile $ getResourceBody
       >>= loadAndApplyTemplate "templates/slides.html" postCtx
+      >>= applyAsTemplate postCtx
       >>= relativizeUrls
 
   match "content/*.md" $ do
