@@ -1,13 +1,11 @@
 ---
-title: Monix in practice
+title: Beyond the Future with purely functional Scala
 layout: true
 ---
 
 class: center, middle
 
-<img src="https://monix.io/public/images/monix-logo.png" width="100"/>
-
-# Monix in practice
+# $title$
 
 ### Ilya Murzinov
 
@@ -26,7 +24,7 @@ class: middle, center
 ---
 
 layout: true
-<div class="my-footer"><span>Monix in practice - Ilya Murzinov, slides: <a href="slides/devfest-siberia-2018.pdf">$root$/slides/devfest-siberia-2018.pdf</a></span></div>
+<div class="my-footer"><span><a href="slides/devfest-siberia-2018.pdf">$root$/slides/devfest-siberia-2018.pdf</a></span></div>
 
 ---
 
@@ -35,8 +33,23 @@ layout: true
 ```scala
 def goodFunction() = 2 + 2
 ```
-
 --
+
+```scala
+val v1 = goodFunction() + goodFunction()
+
+val goodResult = goodFunction()
+val v2 = goodResult + goodResult
+```
+--
+
+```scala
+v1 == v2 // true
+```
+
+---
+
+# Referential transparency
 
 ```scala
 def badFunction() = {
@@ -44,6 +57,178 @@ def badFunction() = {
   2 + 2
 }
 ```
+--
+
+```scala
+val v3 = badFunction() + badFunction()
+
+val badResult = badFunction()
+val v4 = badResult + badResult
+```
+--
+
+```scala
+v3 == v4 // true
+```
+
+---
+
+# Simple example
+
+```scala
+def extract(): Seq[String] = ???
+def transform(strings: Seq[String]): Seq[WTF] = ???
+def load(wtfs: Seq[WTF]): Unit = ???
+```
+--
+
+```scala
+def etl(): Unit = {
+  val strings = extract()
+  val wtfs = transform(strings)
+  load(wtfs)
+}
+```
+
+---
+
+# Simple example
+
+```scala
+def extract(): Seq[String] = ???
+def transform(strings: Seq[String]): Seq[WTF] = ???
+def load(wtfs: Seq[WTF]): Unit = ???
+```
+
+```scala
+def etl(): Unit = {
+  val strings = extract()       // <- IO-bound
+  val wtfs = transform(strings) // <- CPU-bound
+  load(wtfs)                    // <- IO-bound
+}
+```
+???
+
+---
+
+class: middle, center
+
+# Can we do better?
+
+---
+
+class: middle, center
+
+# Yes we can!
+
+---
+
+# Future FTW
+
+```scala
+import scala.concurrent.Future
+
+val extractF: Future[Seq[String]] = ???
+val transformF: Seq[String] => Future[Seq[WTF]] = ???
+val loadF: Seq[WTF] => Future[Unit] = ???
+```
+--
+
+```scala
+val etlF: Future[Unit] = for {
+  strings <- extractF
+  wtfs <- transformF(strings)
+  _ <- loadF(wtfs)
+} yield ()
+```
+--
+
+```
+> sbt compile
+```
+
+---
+
+# Oops!
+
+```
+[error] Main.scala:30:5: Cannot find an implicit ExecutionContext. 
+[error] You might pass
+[error] an (implicit ec: ExecutionContext) parameter to your method
+[error] or import scala.concurrent.ExecutionContext.Implicits.global.
+[error]   _ <- loadF(wtfs)
+[error]     ^
+[error] Main.scala:29:8: Cannot find an implicit ExecutionContext
+[error] You might pass
+[error] an (implicit ec: ExecutionContext) parameter to your method
+[error] or import scala.concurrent.ExecutionContext.Implicits.global.
+[error]   wtfs <- transformF(strings)
+[error]        ^
+[error] Main.scala:28:11: Cannot find an implicit ExecutionContext
+[error] You might pass
+[error] an (implicit ec: ExecutionContext) parameter to your method
+[error] or import scala.concurrent.ExecutionContext.Implicits.global.
+[error]   strings <- extractF
+[error]           ^
+[error] three errors found
+[error] (Compile / compileIncremental) Compilation failed
+```
+
+---
+
+# ExecutionContext
+
+```scala
+val etlF: Future[Unit] = for {
+  strings <- extractF
+  wtfs <- transformF(strings)
+  _ <- loadF(wtfs)
+} yield ()
+```
+--
+
+```scala
+val etlF = extractF
+  .flatMap(strings => transformF(strings))
+  .flatMap(wtfs => loadF(wtfs))
+```
+--
+
+```scala
+def flatMap[S](f: T => Future[S])
+              (implicit ec: ExecutionContext): Future[S] = ???
+```
+
+---
+
+# Drawbacks of Future
+--
+
+- Eager (thus not ref. transparent)
+
+--
+
+- Not cancellable
+
+--
+
+- Always asyncronous
+
+--
+
+- Leaky API
+
+---
+
+class: middle, center
+
+# Can we do even better?
+
+---
+
+class: middle, center
+
+# Yes we can!
 
 ---
 class: middle, center
@@ -69,70 +254,24 @@ class: middle, center
 
 # `Task[A]`
 
-???
-Ключевой абстракцией является Task - структура данных, которая позволяет описывать вычисления,
-возможно, асинхронные. Для начала хочу пояснить, зачем вообще нужен Task, когда у нас вроде бы уже
-есть Future, которая позволяет описывать асинхронные вычисления.
-
-Дело в том, что между Task и Future есть значительные принципиальне различия, давайте на них посмотрим.
-
 ---
 
-# Task vs Future
---
-
-`scala.concurrect.Future`:
-
-- Eager (thus not ref. transparent)
-
-???
-Главная проблема Future в том, что она жадная, это значит, что когда вы в своём коде получили ссылку
-на какую-то Future, то скорее всего она уже начала выполняться, а может быть даже завершила выполнение.
-Это нарушает ссылочную прозрачность Future, то есть банальный рефакторинг ТАКОГО ВИДА полностью меняет
-семантику программы.
---
-
-- Not cancellable
-
-???
-Кроме того, запущенное внутри Future вычисление невозможно отменить, даже если результат нам уже не
-нужен. То есть отменить-то его можно, но для этого придётся делать кастомную логику в самом вычислении.
---
-
-- Always asyncronous
-
-???
-С точки зрения выполнения, Future всегда запускается на другом логическом потоке, что может привести к
-оверхеду из-за переключения контекста, хотя в некоторых случаях этого можно было бы избежать.
---
-
-- Not stack-safe
-
---
-
-`monix.Task`:
+# Benefits of Task
 
 - Lazy (ref. transparent)
 
-???
-С другой стороны Task является ленивым, то есть пока на нём не вызван runAsync, ничего не будет
-выполнено. На таск можно смотреть как на чистую функцию, которая возвращает Future. Это делает его
-ссылочно прозрачным, а значит программу, составленную из тасков, гораздо проще поддерживать.
 --
 
 - Cancellable
 
-???
-Таск можно сделать отменяемым, причём почти автоматически, просто вызвав cancelable. Чуть позже я
-поясню, как это работает.
 --
 
 - Not always asyncronous
 
-???
-Таск не всегда запускается на другом логическом потоке и позволяет очень точно контролировать своё
-выполнение, например, выполнять часть задач на отдельном тред-пуле, либо форсировать переключение на
-другой логический поток.
+--
+
+- Never blocks threads
+
 --
 
 - Stack (and heap) safe
@@ -140,6 +279,8 @@ class: middle, center
 ---
 
 # Scheduler
+
+Can:
 
 - Schedule delayed execution
 
@@ -168,11 +309,6 @@ Scheduler.computation(name = "my-computation")
 
 Scheduler.io(name = "my-io")
 ```
-
-???
-computation под капотом имеет ForkJoinPool и предназначен в основном для CPU-bound вычислений.
-
-у io под капотом unbounded CachedThreadPool.
 
 --
 ```scala
@@ -255,14 +391,14 @@ source // executes on main
 # Composing tasks
 
 ```scala
-val extract: Task[Seq[String]] = ???
-val transform: Seq[String] => Task[Seq[WTF]] = ???
-val load: Seq[WTF] => Task[Unit] = ???
+val extractT: Task[Seq[String]] = ???
+val transformT: Seq[String] => Task[Seq[WTF]] = ???
+val loadT: Seq[WTF] => Task[Unit] = ???
 
-for {
-  strings <- extract
-  transformed <- transform(strings)
-  _ <- load(transformed)
+val etl: Task[Unit] = for {
+  strings <- extractT
+  wtfs <- transformT(strings)
+  _ <- loadT(wtfs)
 } yield ()
 ```
 --
@@ -274,6 +410,21 @@ val extract3: Task[Seq[String]] = ???
 
 val extract =
   Task.parMap3(extract1, extract2, extract3)(_ :+ _ :+ _)
+```
+
+---
+
+# Composing tasks
+
+```scala
+val comp = Scheduler.computation(name = "my-computation")
+val io = Scheduler.io(name = "my-io")
+
+val etl: Task[Unit] = for {
+  strings <- extractT`.executeOn(io)`
+  wtfs <- transformT(strings)`.executeOn(comp)`
+  _ <- loadT(wtfs)`.executeOn(io)`
+} yield ()
 ```
 
 ---
@@ -348,193 +499,6 @@ val t = sleep.`flatMap(_ => Task.eval(println(42)))`
 t.runAsync.cancel()
 
 Thread.sleep(1000)
-```
-
----
-
-class: middle, center
-
-# Observable[A]
-
-???
-Observable - это структура данных для описания асинхронной обработки потока данных.
-
-Observable можно представлять как Iterable, который может обрабатывать элементы асинхронно.
-
-Давайте посмотрим, какими свойствами обладает Observable
-
----
-
-# Observable[A]
-
-- Lazy (ref. transparent)
-
---
-
-- Cancellable
-
---
-
-- Safe (doesn't expose unsafe or blocking operations)
-
---
-
-- Allows fine-grained control over execution
-
---
-
-- Models single producer - multiple consumers communication
-
---
-
-- Non-blocking back-pressure
-
-
-???
-У Obserable отличная интеграция с Task, то есть таски можно использовать для описания
-обработки элементов.
-
-Observable - это высокоуровневая абстракция, это значит, что для работы с ним почти
-никогда не нужно задумываться про примитивы типа Observer, обычно Observable можно
-легко превратить в таск и уже таск запустить.
-
-В Мониксе есть холодные и горячие Observable, первые могу иметь только 1 подписчика,
-вторые - несколько. Это позволяет строить сложные флоу по типу Akka Graph DSL.
-
-Раз уж заговорили про акка стримы, давайте я расскажу, почему Моникс лучше.
-
-Разумеется, с моей точки зрения.
-
----
-
-# Monix vs Akka streams
-
-`Monix` has
-
-- Simpler API
-
-- Lighter (no dependency on actor framework)
-
-- Better execution control
-
-- Easier to understand internals
-
-- Faster
-
-???
-Моникс очень хорошо справляется с задачами, где нужно мёржить много стримов и запускать много
-разных асинхронных задач
-
-По поводу перформанса у меня есть небольшой бенчмарк.
-
----
-
-# Performance
-
-```scala
-private[this] val list = 1 to 100
-
-@Benchmark
-def monixMerge: Int = {
-  val observables = list
-    .map(_ => Observable.fromIterable(list).executeAsync)
-
-  Observable
-    .merge(observables: _*)(OverflowStrategy.BackPressure(10))
-    .foldL
-    .runSyncUnsafe(1.seconds)
-}
-
-@Benchmark
-def akkaMerge: Int = {
-  val source: Source[Int, NotUsed] = Source(list)
-  val f = list
-    .map(_ => source)
-    .fold(Source.empty)(_.merge(_))
-    .runWith(Sink.fold(0)(_ + _))
-
-  Await.result(f, 1.second)
-}
-```
-
----
-
-# Performance
-
-```
-# Run complete. Total time: 00:06:45
-Do not assume the numbers tell you what you want them to tell.
-Benchmark                   Mode  Cnt    Score    Error  Units
-MonixBenchmark.akkaMerge   thrpt   10   `46.207 ±  0.849`  ops/s
-MonixBenchmark.monixMerge  thrpt   10  `531.182 ± 37.332`  ops/s
-```
-
----
-
-# Example
-
-<img src="/images/devfest-siberia-2018/diagram.svg"/>
-
----
-
-# Example
-
-```scala
-val acceptClient: Task[(Long, Data)] = ???
-
-def handleClientJoin(id: Long, data: Data,
-                     state: State): Task[State] = ???
-
-def clientSubscriber(`mState: MVar[State]`) =
-  Observable.repeat(())
-    .doOnSubscribe(() => println(s"Client subscriber started"))
-    .mapTask(_ => `acceptClient`)
-    .mapTask { case (id, s) =>
-      for {
-        state <- `mState.take`
-        newState <- `handleClientJoin(id, s, state)`
-        _ <- `mState.put(newState)`
-      } yield ()
-    }
-    `.completedL`
-```
-
----
-
-# Example
-
-```scala
-val acceptEventSource: Task[Iterator[Event]] = ???
-
-def handleEvent(event: Event, state: State): Task[State]
-
-def eventSourceProcessor(mState: MVar[State]) =
-  Observable.repeat(())
-    .doOnSubscribe(() => println(s"Event processor started"))
-    .mapTask(_ => `acceptEventSource`)
-    .flatMap(it => Observable.fromIterator(it)
-      .mapTask(e => for {
-        state <- mState.take
-        newState <- `handleEvent(e, state)`
-        _ <- mState.put(newState)
-      } yield ()))
-    `.headL`
-```
-
----
-
-# Example
-
-```scala
-val io = Scheduler.io()
-val computation = Scheduler.computation()
-
-for {
-  initialState <- MVar(State())
-  c = clientSubscriber(initialState).`executeOn(io)`
-  e = eventSourceProcessor(initialState).`executeOn(computation)`
-  _ <- Task.gatherUnordered(Seq(c, e))
-} yield ()
 ```
 
 ---
