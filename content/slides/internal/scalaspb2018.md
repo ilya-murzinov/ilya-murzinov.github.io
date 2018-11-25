@@ -5,7 +5,7 @@ layout: true
 
 class: center, middle
 
-<img src="https://monix.io/public/images/monix-logo.png" width="100"/>
+<img src="/images/monix-logo.png" width="100"/>
 
 # Monix in practice
 
@@ -78,7 +78,7 @@ def badFunction() = {
 ---
 class: middle, center
 
-<img src="https://monix.io/public/images/monix-logo.png" width="100"/>
+<img src="/images/monix-logo.png" width="100"/>
 
 # Monix
 

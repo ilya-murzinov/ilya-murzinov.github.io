@@ -9,11 +9,11 @@ class: center, middle
 
 ### Ilya Murzinov
 
-<i class="fab fa-twitter" style="color: #00aced"></i> [ilyamurzinov](https://twitter.com/ilyamurzinov)
+$github$
 
-<i class="fab fa-github"></i> [ilya-murzinov](https://github.com/ilya-murzinov)
+$telegram$
 
-<i class="fab fa-telegram" style="color: #0088cc"></i> [ilyamurzinov](https://t.me/ilyamurzinov)
+$email$
 
 ---
 
@@ -25,6 +25,26 @@ class: middle, center
 
 layout: true
 <div class="my-footer"><span><a href="slides/devfest-siberia-2018.pdf">$root$/slides/devfest-siberia-2018.pdf</a></span></div>
+
+---
+
+# Typical ETL
+
+```scala
+def extract(): Seq[String] = ???
+def transform(strings: Seq[String]): Seq[WTF] = ???
+def load(wtfs: Seq[WTF]): Unit = ???
+```
+--
+
+```scala
+def etl(): Unit = {
+  val strings = extract()
+  val wtfs = transform(strings)
+  load(wtfs)
+}
+```
+???
 
 ---
 
@@ -68,46 +88,8 @@ val v4 = badResult + badResult
 --
 
 ```scala
-v3 == v4 // true
+v3 == v4 // true-ish
 ```
-
----
-
-# Simple example
-
-```scala
-def extract(): Seq[String] = ???
-def transform(strings: Seq[String]): Seq[WTF] = ???
-def load(wtfs: Seq[WTF]): Unit = ???
-```
---
-
-```scala
-def etl(): Unit = {
-  val strings = extract()
-  val wtfs = transform(strings)
-  load(wtfs)
-}
-```
-
----
-
-# Simple example
-
-```scala
-def extract(): Seq[String] = ???
-def transform(strings: Seq[String]): Seq[WTF] = ???
-def load(wtfs: Seq[WTF]): Unit = ???
-```
-
-```scala
-def etl(): Unit = {
-  val strings = extract()       // <- IO-bound
-  val wtfs = transform(strings) // <- CPU-bound
-  load(wtfs)                    // <- IO-bound
-}
-```
-???
 
 ---
 
@@ -152,19 +134,19 @@ val etlF: Future[Unit] = for {
 # Oops!
 
 ```
-[error] Main.scala:30:5: Cannot find an implicit ExecutionContext. 
+[error] Main.scala:30:5: `Cannot find an implicit ExecutionContext.`
 [error] You might pass
 [error] an (implicit ec: ExecutionContext) parameter to your method
 [error] or import scala.concurrent.ExecutionContext.Implicits.global.
 [error]   _ <- loadF(wtfs)
 [error]     ^
-[error] Main.scala:29:8: Cannot find an implicit ExecutionContext
+[error] Main.scala:29:8: `Cannot find an implicit ExecutionContext.`
 [error] You might pass
 [error] an (implicit ec: ExecutionContext) parameter to your method
 [error] or import scala.concurrent.ExecutionContext.Implicits.global.
 [error]   wtfs <- transformF(strings)
 [error]        ^
-[error] Main.scala:28:11: Cannot find an implicit ExecutionContext
+[error] Main.scala:28:11: `Cannot find an implicit ExecutionContext.`
 [error] You might pass
 [error] an (implicit ec: ExecutionContext) parameter to your method
 [error] or import scala.concurrent.ExecutionContext.Implicits.global.
@@ -201,6 +183,34 @@ def flatMap[S](f: T => Future[S])
 
 ---
 
+# ExecutionContext
+
+```scala
+val etlF: Future[Unit] = for {
+  strings <- extractF         // <- IO-bound
+  wtfs <- transformF(strings) // <- CPU-bound
+  _ <- loadF(wtfs)            // <- IO-bound
+} yield ()
+```
+--
+
+```scala
+val comp = ExecutionContext.fromExecutor(
+  Executors.newFixedThreadPool(
+    Runtime.getRuntime.availableProcessors()))
+
+val io = ExecutionContext.fromExecutor(
+  Executors.newCachedThreadPool())
+```
+
+```scala
+extractF
+  .flatMap(strings => transformF(strings))(comp)
+  .flatMap(wtfs => loadF(wtfs))(io)
+```
+
+---
+
 # Drawbacks of Future
 --
 
@@ -213,6 +223,10 @@ def flatMap[S](f: T => Future[S])
 --
 
 - Always asyncronous
+
+--
+
+- Memoized
 
 --
 
@@ -233,7 +247,7 @@ class: middle, center
 ---
 class: middle, center
 
-<img src="https://monix.io/public/images/monix-logo.png" width="100"/>
+<img src="/images/monix-logo.png" width="100"/>
 
 # Monix
 
@@ -274,7 +288,15 @@ class: middle, center
 
 --
 
+- Doesn't expose blocking API
+
+--
+
 - Stack (and heap) safe
+
+--
+
+- Not memoized by default
 
 ---
 
@@ -388,6 +410,20 @@ source // executes on main
 
 ---
 
+# Thread shifting
+
+```
+> sbt runMain demo.Main
+
+Running on thread: main
+Running on thread: main
+Running on thread: scala-execution-context-global-11
+Running on thread: my-io-12
+Ends on thread: scala-execution-context-global-11
+```
+
+---
+
 # Composing tasks
 
 ```scala
@@ -458,16 +494,6 @@ val f: CancelableFuture[Unit] = t.runAsync
 
 f.cancel()
 ```
---
-
-```scala
-Task { Thread.sleep(100); println(42) }
-  .doOnCancel(Task.eval(println("On cancel")))
-  .runAsync
-  .cancel()
-
-Thread.sleep(1000)
-```
 
 ---
 
@@ -480,9 +506,19 @@ val sleep = Task(Thread.sleep(100))
 
 val t = sleep.flatMap(_ => Task.eval(println(42)))
 
-t.runAsync.cancel()
+t.doOnCancel(Task.eval(println("On cancel")))
+  .runAsync
+  .cancel()
 
 Thread.sleep(1000)
+```
+--
+
+```
+> sbt runMain demo.Main
+
+On cancel
+42
 ```
 
 ---
@@ -496,9 +532,40 @@ val sleep = Task(Thread.sleep(100))`.cancelable`
 
 val t = sleep.`flatMap(_ => Task.eval(println(42)))`
 
-t.runAsync.cancel()
+t.doOnCancel(Task.eval(println("On cancel")))
+  .runAsync
+  .cancel()
 
 Thread.sleep(1000)
+```
+--
+
+```
+> sbt runMain demo.Main
+
+On cancel
+```
+
+---
+
+# Task memoization
+
+```scala
+val t: Task = ???
+t.memoize
+t.memoizeOnSuccess
+```
+--
+
+```scala
+var effect = 0
+
+val source = Task.eval {
+  effect += 1
+  if (effect < 3) throw new RuntimeException("dummy") else effect
+}
+
+val cached = source.memoizeOnSuccess
 ```
 
 ---

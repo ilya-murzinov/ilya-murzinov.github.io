@@ -65,9 +65,8 @@ postCtx :: Context String
 postCtx =
   deIndexedUrl "url" `mappend`
   dateField "date" "%B %e, %Y" `mappend`
-  constField "root" (siteRoot siteConf) `mappend`
-  constField "gaId" (siteGaId siteConf) `mappend`
-  constField "disqusName" (disqusName siteConf) `mappend`
+  siteCtx `mappend`
+  socialCtx `mappend`
   defaultContext
 
 allPosts :: Pattern
