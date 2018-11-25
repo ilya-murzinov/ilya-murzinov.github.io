@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Beyond the Future with purely functional Scala</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="../../../css/all.css">
+    <link rel="stylesheet" href="../../../css/hack-subset.css">
+    <style>
+      @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
+      @import url(https://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic);
+
+      @page {
+        size: 1210px 681px;
+        margin: 0;
+      }
+
+      @media print {
+        .remark-slide-scaler {
+          width: 100% !important;
+          height: 100% !important;
+          transform: scale(1) !important;
+          top: 0 !important;
+          left: 0 !important;
+        }
+      }
+
+      body { font-family: 'Droid Serif'; }
+      h1, h2, h3 {
+        font-family: 'Yanone Kaffeesatz';
+        font-weight: normal;
+      }
+      .remark-code, .remark-inline-code { font-family: 'Hack'; }
+      .hljs-github .hljs-comment, .hljs-github .hljs-quote { font-style: normal; }
+      a:link { color: grey; }
+      a:visited { color: grey; }
+      a:hover { color: grey; }
+      a:active { color: grey; }
+
+      img {
+        display: block;
+        margin: auto;
+      }
+
+      .inverse {
+        background: #272822;
+        color: #f3f3f3;
+        text-shadow: 0 0 20px #333;
+      }
+      .inverse h1, .inverse h2 {
+        color: #f3f3f3;
+        line-height: 0.8em;
+      }
+
+      div.my-header {
+        font-family: 'Yanone Kaffeesatz';
+        font-size: 15pt;
+        position: fixed;
+        top: 10px;
+        left: 15px;
+        height: 30px;
+        width: 100%;
+        text-align: left;
+      }
+
+      div.my-footer {
+        position: absolute;
+        bottom: 0px;
+        left: 0px;
+        height: 20px;
+        width: 100%;
+      }
+
+      div.my-footer span {
+        font-family: 'Yanone Kaffeesatz';
+        font-size: 15pt;
+        position: absolute;
+        left: 15px;
+        bottom: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <textarea id="source">
+
+class: center, middle
+
+# Beyond the Future with purely functional Scala
+
+### Ilya Murzinov
+
+<i class="fab fa-github"></i> [ilya-murzinov](https://github.com/ilya-murzinov)
+
+<i class="fab fa-telegram" style="color: #0088cc"></i> [ilyamurzinov](https://t.me/ilyamurzinov)
+
+<i class="far fa-envelope"></i> [murz42@gmail.com](mailto:murz42@gmail.com)
+
+---
+
+class: middle, center
+
+<img src="../../../images/Revolut.png" style="max-width:100%;" />
+
+---
+
+layout: true
+<div class="my-footer"><span><a href="slides/devfest-siberia-2018.pdf">https://ilya-murzinov.github.io/slides/devfest-siberia-2018.pdf</a></span></div>
+
+---
+
+# Typical ETL
+
+```scala
+def extract(): Seq[String] = ???
+def transform(strings: Seq[String]): Seq[WTF] = ???
+def load(wtfs: Seq[WTF]): Unit = ???
+```
+--
+
+```scala
+def etl(): Unit = {
+  val strings = extract()
+  val wtfs = transform(strings)
+  load(wtfs)
+}
+```
+???
+
+---
+
+# Referential transparency
+
+```scala
+def goodFunction() = 2 + 2
+```
+--
+
+```scala
+val v1 = goodFunction() + goodFunction()
+
+val goodResult = goodFunction()
+val v2 = goodResult + goodResult
+```
+--
+
+```scala
+v1 == v2 // true
+```
+
+---
+
+# Referential transparency
+
+```scala
+def badFunction() = {
+  sendMessage()
+  2 + 2
+}
+```
+--
+
+```scala
+val v3 = badFunction() + badFunction()
+
+val badResult = badFunction()
+val v4 = badResult + badResult
+```
+--
+
+```scala
+v3 == v4 // true-ish
+```
+
+---
+
+class: middle, center
+
+# Can we do better?
+
+---
+
+class: middle, center
+
+# Yes we can!
+
+---
+
+# Future FTW
+
+```scala
+import scala.concurrent.Future
+
+val extractF: Future[Seq[String]] = ???
+val transformF: Seq[String] => Future[Seq[WTF]] = ???
+val loadF: Seq[WTF] => Future[Unit] = ???
+```
+--
+
+```scala
+val etlF: Future[Unit] = for {
+  strings <- extractF
+  wtfs <- transformF(strings)
+  _ <- loadF(wtfs)
+} yield ()
+```
+--
+
+```
+> sbt compile
+```
+
+---
+
+# Oops!
+
+```
+[error] Main.scala:30:5: `Cannot find an implicit ExecutionContext.`
+[error] You might pass
+[error] an (implicit ec: ExecutionContext) parameter to your method
+[error] or import scala.concurrent.ExecutionContext.Implicits.global.
+[error]   _ <- loadF(wtfs)
+[error]     ^
+[error] Main.scala:29:8: `Cannot find an implicit ExecutionContext.`
+[error] You might pass
+[error] an (implicit ec: ExecutionContext) parameter to your method
+[error] or import scala.concurrent.ExecutionContext.Implicits.global.
+[error]   wtfs <- transformF(strings)
+[error]        ^
+[error] Main.scala:28:11: `Cannot find an implicit ExecutionContext.`
+[error] You might pass
+[error] an (implicit ec: ExecutionContext) parameter to your method
+[error] or import scala.concurrent.ExecutionContext.Implicits.global.
+[error]   strings <- extractF
+[error]           ^
+[error] three errors found
+[error] (Compile / compileIncremental) Compilation failed
+```
+
+---
+
+# ExecutionContext
+
+```scala
+val etlF: Future[Unit] = for {
+  strings <- extractF
+  wtfs <- transformF(strings)
+  _ <- loadF(wtfs)
+} yield ()
+```
+--
+
+```scala
+val etlF = extractF
+  .flatMap(strings => transformF(strings))
+  .flatMap(wtfs => loadF(wtfs))
+```
+--
+
+```scala
+def flatMap[S](f: T => Future[S])
+              (implicit ec: ExecutionContext): Future[S] = ???
+```
+
+---
+
+# ExecutionContext
+
+```scala
+val etlF: Future[Unit] = for {
+  strings <- extractF         // <- IO-bound
+  wtfs <- transformF(strings) // <- CPU-bound
+  _ <- loadF(wtfs)            // <- IO-bound
+} yield ()
+```
+--
+
+```scala
+val comp = ExecutionContext.fromExecutor(
+  Executors.newFixedThreadPool(
+    Runtime.getRuntime.availableProcessors()))
+
+val io = ExecutionContext.fromExecutor(
+  Executors.newCachedThreadPool())
+```
+
+```scala
+extractF
+  .flatMap(strings => transformF(strings))(comp)
+  .flatMap(wtfs => loadF(wtfs))(io)
+```
+
+---
+
+# Drawbacks of Future
+--
+
+- Eager (thus not ref. transparent)
+
+--
+
+- Not cancellable
+
+--
+
+- Always asyncronous
+
+--
+
+- Memoized
+
+--
+
+- Leaky API
+
+---
+
+class: middle, center
+
+# Can we do even better?
+
+---
+
+class: middle, center
+
+# Yes we can!
+
+---
+class: middle, center
+
+<img src="../../../images/monix-logo.png" width="100" />
+
+# Monix
+
+---
+
+# Monix modules
+
+- `monix-eval` - Task, Coeval, MVar etc.
+
+- `monix-reactive` - Observable, Observer (push-based streaming)
+
+- `monix-tail` - Iterant (pull-based streaming)
+
+- `monix-execution` - Scheduler & bunch of performance hacks
+
+---
+class: middle, center
+
+# `Task[A]`
+
+---
+
+# Benefits of Task
+
+- Lazy (ref. transparent)
+
+--
+
+- Cancellable
+
+--
+
+- Not always asyncronous
+
+--
+
+- Never blocks threads
+
+--
+
+- Doesn't expose blocking API
+
+--
+
+- Stack (and heap) safe
+
+--
+
+- Not memoized by default
+
+---
+
+# Scheduler
+
+Can:
+
+- Schedule delayed execution
+
+- Schedule periodic execution
+
+- Provide cancellation token
+
+- Use different execution models
+
+---
+
+# ExecutionModel
+
+- `AlwaysAsyncExecution`
+
+- `SynchronousExecution`
+
+- `BatchedExecution`
+
+---
+
+# Scheduler
+
+```scala
+Scheduler.computation(name = "my-computation")
+
+Scheduler.io(name = "my-io")
+```
+
+--
+```scala
+Scheduler.fixedPool("my-fixed-pool", 10)
+
+Scheduler.singleThread("my-single-thread")
+```
+
+---
+# Creating a task
+
+```scala
+import monix.eval.Task
+
+// eagerly evaluates the argument
+Task.now(42)
+Task.now(println(42))
+
+// suspends argument evaluation
+Task.eval(println(42))
+
+// suspends evaluation + makes it asynchronous
+Task(println(42))
+
+...
+
+Task.evalOnce(...)
+Task.defer(...)
+Task.deferFuture(...)
+Task.deferFutureAction(...)
+
+...
+
+```
+
+---
+
+# Thread shifting
+
+```scala
+val t = Task.eval(println(42))
+
+t.executeAsync
+
+t.executeOn(io)
+
+t.asyncBoundary(io)
+```
+
+---
+
+# Thread shifting
+
+```scala
+import monix.execution.Scheduler
+import monix.execution.Scheduler.Implicits.global
+
+lazy val io = Scheduler.io(name = "my-io")
+
+val source = Task.eval(println(
+  s"Running on thread: ${Thread.currentThread.getName}"))
+
+val async = source.`executeAsync`
+val forked = source.`executeOn(io)`
+
+val onFinish = Task.eval(println(
+  s"Ends on thread: ${Thread.currentThread.getName}"))
+
+source // executes on main
+  .flatMap(_ => source) // executes on main
+  .flatMap(_ => async) // executes on global
+  .flatMap(_ => forked) // executes on io
+  .`asyncBoundary` // switch back to global
+  .doOnFinish(_ => onFinish) // executes on global
+  .runAsync
+```
+
+---
+
+# Thread shifting
+
+```
+> sbt runMain demo.Main
+
+Running on thread: main
+Running on thread: main
+Running on thread: scala-execution-context-global-11
+Running on thread: my-io-12
+Ends on thread: scala-execution-context-global-11
+```
+
+---
+
+# Composing tasks
+
+```scala
+val extractT: Task[Seq[String]] = ???
+val transformT: Seq[String] => Task[Seq[WTF]] = ???
+val loadT: Seq[WTF] => Task[Unit] = ???
+
+val etl: Task[Unit] = for {
+  strings <- extractT
+  wtfs <- transformT(strings)
+  _ <- loadT(wtfs)
+} yield ()
+```
+--
+
+```scala
+val extract1: Task[Seq[String]] = ???
+val extract2: Task[Seq[String]] = ???
+val extract3: Task[Seq[String]] = ???
+
+val extract =
+  Task.parMap3(extract1, extract2, extract3)(_ :+ _ :+ _)
+```
+
+---
+
+# Composing tasks
+
+```scala
+val comp = Scheduler.computation(name = "my-computation")
+val io = Scheduler.io(name = "my-io")
+
+val etl: Task[Unit] = for {
+  strings <- extractT`.executeOn(io)`
+  wtfs <- transformT(strings)`.executeOn(comp)`
+  _ <- loadT(wtfs)`.executeOn(io)`
+} yield ()
+```
+
+---
+# Composing tasks
+
+```scala
+val tasks: Seq[Task[A]] = Seq(task1, task2, ...)
+
+// Seq[Task[A]] => Task[Seq[A]]
+Task.sequence(tasks)
+
+Task.gather(tasks)
+
+Task.gatherUnordered(tasks)
+```
+--
+
+```scala
+// Seq[Task[A]] => Task[A]
+Task.raceMany(tasks)
+```
+
+---
+
+# Task cancellation
+
+```scala
+val task = ???
+
+val f: CancelableFuture[Unit] = t.runAsync
+
+f.cancel()
+```
+
+---
+
+# Task cancellation
+
+```scala
+import monix.execution.Scheduler.Implicits.global
+
+val sleep = Task(Thread.sleep(100))
+
+val t = sleep.flatMap(_ => Task.eval(println(42)))
+
+t.doOnCancel(Task.eval(println("On cancel")))
+  .runAsync
+  .cancel()
+
+Thread.sleep(1000)
+```
+--
+
+```
+> sbt runMain demo.Main
+
+On cancel
+42
+```
+
+---
+
+# Task cancellation
+
+```scala
+import monix.execution.Scheduler.Implicits.global
+
+val sleep = Task(Thread.sleep(100))`.cancelable`
+
+val t = sleep.`flatMap(_ => Task.eval(println(42)))`
+
+t.doOnCancel(Task.eval(println("On cancel")))
+  .runAsync
+  .cancel()
+
+Thread.sleep(1000)
+```
+--
+
+```
+> sbt runMain demo.Main
+
+On cancel
+```
+
+---
+
+# Task memoization
+
+```scala
+val t: Task = ???
+t.memoize
+t.memoizeOnSuccess
+```
+--
+
+```scala
+var effect = 0
+
+val source = Task.eval {
+  effect += 1
+  if (effect < 3) throw new RuntimeException("dummy") else effect
+}
+
+val cached = source.memoizeOnSuccess
+```
+
+---
+
+# References
+
+- [Monix (https://monix.io)](https://monix.io)
+
+- [Monix vs Cats-Effect](https://monix.io/blog/2018/03/20/monix-vs-cats-effect.html)
+
+- [Scalaz 8 IO vs Akka (typed) actors vs Monix @ SoftwareMill](https://blog.softwaremill.com/scalaz-8-io-vs-akka-typed-actors-vs-monix-part-1-5672657169e1)
+
+- [Solution of the example (https://github.com/ilya-murzinov/seuraajaa)](https://github.com/ilya-murzinov/seuraajaa)
+
+---
+
+class: center, middle
+
+# Questions?
+
+---
+
+class: center, middle
+
+# Thanks!
+
+    </textarea>
+    
+    <script src="../../../js/remark-latest.min.js">
+    </script>
+    <script>
+      var slideshow = remark.create({
+        ratio: '4:3',
+        navigation: {
+          scroll: false,
+          touch: true,
+          click: false,
+        },
+        countIncrementalSlides: false,
+        highlightLanguage: 'scala',
+        highlightStyle: 'github',
+        highlightSpans: 'true',
+        highlightLines: 'true',
+      });
+    </script>
+  </body>
+</html>
