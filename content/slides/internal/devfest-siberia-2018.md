@@ -45,21 +45,19 @@ def etl(): Unit = {
 }
 ```
 ???
+с этим кодом существует 3 категории проблем: перформанс, расширяемость и читаемость
 
 ---
 
 # Referential transparency
 
 ```scala
-def goodFunction() = 2 + 2
-```
---
+val s: Seq[String] = ???
 
-```scala
-val v1 = goodFunction() + goodFunction()
+val v1 = transform(s) ++ transform(s)
 
-val goodResult = goodFunction()
-val v2 = goodResult + goodResult
+val wtfs = transform(s)
+val v2 = wtfs + wtfs
 ```
 --
 
@@ -72,18 +70,13 @@ v1 == v2 // true
 # Referential transparency
 
 ```scala
-def badFunction() = {
-  sendMessage()
-  2 + 2
-}
-```
---
+def load(wtfs: Seq[WTF]): `Int` = ???
+val s: Seq[WTF] = ???
 
-```scala
-val v3 = badFunction() + badFunction()
+val v3 = load(s) + load(s)
 
-val badResult = badFunction()
-val v4 = badResult + badResult
+val result = load(s)
+val v4 = result + result
 ```
 --
 
@@ -111,7 +104,6 @@ class: middle, center
 import scala.concurrent.Future
 
 val extractF: Future[Seq[String]] = ???
-val transformF: Seq[String] => Future[Seq[WTF]] = ???
 val loadF: Seq[WTF] => Future[Unit] = ???
 ```
 --
@@ -119,7 +111,7 @@ val loadF: Seq[WTF] => Future[Unit] = ???
 ```scala
 val etlF: Future[Unit] = for {
   strings <- extractF
-  wtfs <- transformF(strings)
+  wtfs = transform(strings)
   _ <- loadF(wtfs)
 } yield ()
 ```
@@ -140,19 +132,13 @@ val etlF: Future[Unit] = for {
 [error] or import scala.concurrent.ExecutionContext.Implicits.global.
 [error]   _ <- loadF(wtfs)
 [error]     ^
-[error] Main.scala:29:8: `Cannot find an implicit ExecutionContext.`
-[error] You might pass
-[error] an (implicit ec: ExecutionContext) parameter to your method
-[error] or import scala.concurrent.ExecutionContext.Implicits.global.
-[error]   wtfs <- transformF(strings)
-[error]        ^
 [error] Main.scala:28:11: `Cannot find an implicit ExecutionContext.`
 [error] You might pass
 [error] an (implicit ec: ExecutionContext) parameter to your method
 [error] or import scala.concurrent.ExecutionContext.Implicits.global.
 [error]   strings <- extractF
 [error]           ^
-[error] three errors found
+[error] two errors found
 [error] (Compile / compileIncremental) Compilation failed
 ```
 
@@ -163,7 +149,7 @@ val etlF: Future[Unit] = for {
 ```scala
 val etlF: Future[Unit] = for {
   strings <- extractF
-  wtfs <- transformF(strings)
+  wtfs = transform(strings)
   _ <- loadF(wtfs)
 } yield ()
 ```
@@ -171,7 +157,7 @@ val etlF: Future[Unit] = for {
 
 ```scala
 val etlF = extractF
-  .flatMap(strings => transformF(strings))
+  .map(strings => transform(strings))
   .flatMap(wtfs => loadF(wtfs))
 ```
 --
@@ -186,6 +172,8 @@ def flatMap[S](f: T => Future[S])
 # ExecutionContext
 
 ```scala
+val transformF: Seq[String] => Future[Seq[WTF]]
+
 val etlF: Future[Unit] = for {
   strings <- extractF         // <- IO-bound
   wtfs <- transformF(strings) // <- CPU-bound
@@ -202,12 +190,15 @@ val comp = ExecutionContext.fromExecutor(
 val io = ExecutionContext.fromExecutor(
   Executors.newCachedThreadPool())
 ```
+--
 
 ```scala
 extractF
   .flatMap(strings => transformF(strings))(comp)
   .flatMap(wtfs => loadF(wtfs))(io)
 ```
+???
+Проблема - в extractF нельзя передать ExecutionContext
 
 ---
 
@@ -252,18 +243,6 @@ class: middle, center
 # Monix
 
 ---
-
-# Monix modules
-
-- `monix-eval` - Task, Coeval, MVar etc.
-
-- `monix-reactive` - Observable, Observer (push-based streaming)
-
-- `monix-tail` - Iterant (pull-based streaming)
-
-- `monix-execution` - Scheduler & bunch of performance hacks
-
----
 class: middle, center
 
 # `Task[A]`
@@ -297,6 +276,12 @@ class: middle, center
 --
 
 - Not memoized by default
+
+---
+
+class: middle, center
+
+# Scheduler
 
 ---
 
@@ -399,11 +384,11 @@ val forked = source.`executeOn(io)`
 val onFinish = Task.eval(println(
   s"Ends on thread: $${Thread.currentThread.getName}"))
 
-source // executes on main
-  .flatMap(_ => source) // executes on main
-  .flatMap(_ => async) // executes on global
-  .flatMap(_ => forked) // executes on io
-  .`asyncBoundary` // switch back to global
+source                       // executes on main
+  .flatMap(_ => source)      // executes on main
+  .flatMap(_ => async)       // executes on global
+  .flatMap(_ => forked)      // executes on io
+  .`asyncBoundary`            // switch back to global
   .doOnFinish(_ => onFinish) // executes on global
   .runAsync
 ```
@@ -570,15 +555,50 @@ val cached = source.memoizeOnSuccess
 
 ---
 
+# Typical ETL
+
+```scala
+val etl: Task[Unit] = for {
+  strings <- extractT
+  wtfs <- transformT(strings)
+  _ <- loadT(wtfs)
+} yield ()
+```
+
+---
+
+class: middle, center
+
+# Observable[A]
+
+---
+
+# Observable[A]
+
+```scala
+val extractO: Observable[Seq[String]] = ???
+val transformT: Seq[String] => Task[Seq[WTF]] = ???
+val loadT: Seq[WTF] => Task[Unit] = ???
+```
+--
+
+```scala
+val etlO: Task[Unit] =
+  extractO
+    .mapEval(transformT)
+    .mapEval(loadT)
+    .completedL
+```
+
+---
+
 # References
 
 - [Monix (https://monix.io)](https://monix.io)
 
-- [Monix vs Cats-Effect](https://monix.io/blog/2018/03/20/monix-vs-cats-effect.html)
+- [Alex Nedelcu's blog (https://alexn.org/)](https://alexn.org/)
 
 - [Scalaz 8 IO vs Akka (typed) actors vs Monix @ SoftwareMill](https://blog.softwaremill.com/scalaz-8-io-vs-akka-typed-actors-vs-monix-part-1-5672657169e1)
-
-- [Solution of the example (https://github.com/ilya-murzinov/seuraajaa)](https://github.com/ilya-murzinov/seuraajaa)
 
 ---
 
