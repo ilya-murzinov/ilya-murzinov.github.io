@@ -24,7 +24,7 @@ class: middle, center
 ---
 
 layout: true
-<div class="my-footer"><span><a href="slides/devfest-siberia-2018.pdf">$root$/slides/devfest-siberia-2018.pdf</a></span></div>
+<div class="my-footer"><span><a href="$root$/slides/devfest-siberia-2018.pdf">$root$/slides/devfest-siberia-2018.pdf</a></span></div>
 
 ---
 
