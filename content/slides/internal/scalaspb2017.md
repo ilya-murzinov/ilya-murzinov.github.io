@@ -213,7 +213,7 @@ def implicitly[A](implicit a: A) = a
 ```scala
 scala> implicitly[Add[_1, _2]]
 scala.NotImplementedError: an implementation is missing
-	at scala.Predef$.$qmark$qmark$qmark(Predef.scala:252)
+	at scala.Predef$$.$$qmark$$qmark$$qmark(Predef.scala:252)
 ```
 --
 

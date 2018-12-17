@@ -3,26 +3,15 @@
 import           Data.List       (intersperse, isSuffixOf)
 import           Data.List.Split
 import           Data.Monoid     ()
+import           Constants
 import           Hakyll
 import           System.FilePath (splitExtension)
 
 --------------------------------------------------------------------------------
-data SiteConfiguration = SiteConfiguration {
-  siteRoot :: String,
-  siteGaId :: String,
-  disqusName :: String
-}
-
-siteConf :: SiteConfiguration
-siteConf = SiteConfiguration {
-  siteRoot = "https://ilya-murzinov.github.io",
-  siteGaId = "UA-60047092-1",
-  disqusName = "ilyamurzinovgithubio"
-}
 
 main :: IO ()
 main = hakyll $ do
-  match ("images/**" .||. "content/certificates/*" .||. "fonts/*" .||. "js/*" .||. "content/slides/*.pdf") $ do
+  match ("images/**" .||. "webfonts/*" .||. "js/*" .||. "content/certificates/*" .||. "content/slides/*.pdf") $ do
     route $ stripContent `composeRoutes` idRoute
     compile copyFileCompiler
 
@@ -34,6 +23,7 @@ main = hakyll $ do
     route $ stripContent `composeRoutes` customRoute indexRoute
     compile $ getResourceBody
       >>= loadAndApplyTemplate "templates/slides.html" postCtx
+      >>= applyAsTemplate postCtx
       >>= relativizeUrls
 
   match "content/*.md" $ do
@@ -75,9 +65,8 @@ postCtx :: Context String
 postCtx =
   deIndexedUrl "url" `mappend`
   dateField "date" "%B %e, %Y" `mappend`
-  constField "root" (siteRoot siteConf) `mappend`
-  constField "gaId" (siteGaId siteConf) `mappend`
-  constField "disqusName" (disqusName siteConf) `mappend`
+  siteCtx `mappend`
+  socialCtx `mappend`
   defaultContext
 
 allPosts :: Pattern

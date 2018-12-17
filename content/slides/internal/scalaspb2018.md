@@ -5,7 +5,7 @@ layout: true
 
 class: center, middle
 
-<img src="https://monix.io/public/images/monix-logo.png" width="100"/>
+<img src="/images/monix-logo.png" width="100"/>
 
 # Monix in practice
 
@@ -78,7 +78,7 @@ def badFunction() = {
 ---
 class: middle, center
 
-<img src="https://monix.io/public/images/monix-logo.png" width="100"/>
+<img src="/images/monix-logo.png" width="100"/>
 
 # Monix
 
@@ -268,13 +268,13 @@ import monix.execution.Scheduler.Implicits.global
 lazy val io = Scheduler.io(name = "my-io")
 
 val source = Task.eval(println(
-  s"Running on thread: ${Thread.currentThread.getName}"))
+  s"Running on thread: $${Thread.currentThread.getName}"))
 
 val async = source.`executeAsync`
 val forked = source.`executeOn(io)`
 
 val onFinish = Task.eval(println(
-  s"Ends on thread: ${Thread.currentThread.getName}"))
+  s"Ends on thread: $${Thread.currentThread.getName}"))
 
 source // executes on main
   .flatMap(_ => source) // executes on main
